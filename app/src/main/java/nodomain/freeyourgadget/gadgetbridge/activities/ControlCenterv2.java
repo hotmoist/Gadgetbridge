@@ -75,6 +75,8 @@ import nodomain.freeyourgadget.gadgetbridge.R;
 import nodomain.freeyourgadget.gadgetbridge.adapter.GBDeviceAdapterv2;
 import nodomain.freeyourgadget.gadgetbridge.devices.DeviceManager;
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice;
+import nodomain.freeyourgadget.gadgetbridge.model.NotificationSpec;
+import nodomain.freeyourgadget.gadgetbridge.model.NotificationType;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huami.HuamiSupport;
 import nodomain.freeyourgadget.gadgetbridge.util.AndroidUtils;
 import nodomain.freeyourgadget.gadgetbridge.util.GB;
@@ -88,6 +90,7 @@ public class ControlCenterv2 extends AppCompatActivity
     public static final int MENU_REFRESH_CODE = 1;
     private static PhoneStateListener fakeStateListener;
     private static final Logger LOG = LoggerFactory.getLogger(DebugActivity.class);
+    private static final int MUTABILITY = 0, ONE_SECOND = 1, FIVE_SECOND = 2;
 
     //needed for KK compatibility
     static {
@@ -255,6 +258,7 @@ public class ControlCenterv2 extends AppCompatActivity
          *                    3. When notified for exercise and measured HuamiSupport.STEP >= 10, destroy notification
          *                    4. When user is moving (that is HuamiSupport.STEP > 0), reset the timer
          */
+
         final boolean[] flag = {false};
         mHandler = new Handler();
         createNotificationChannel(DEFAULT, "default channel", NotificationManager.IMPORTANCE_HIGH);
@@ -269,8 +273,8 @@ public class ControlCenterv2 extends AppCompatActivity
             @Override
             public void run() {
                 while (true) {
-                    LOG.debug("test heart: " + HuamiSupport.HEART_RATE);
-                    LOG.debug("test step: " + HuamiSupport.STEP);
+                    LOG.debug("debug test heart: " + HuamiSupport.HEART_RATE);
+                    LOG.debug("debug test step: " + HuamiSupport.STEP);
 
                     if (HuamiSupport.HEART_RATE > 0 && HuamiSupport.STEP <= 10) {  // 심장 박동 감지 됨
 
@@ -297,6 +301,18 @@ public class ControlCenterv2 extends AppCompatActivity
                 }
             }
         }).start();
+    }
+
+    public void miBand_notification(){
+        NotificationSpec notificationSpec = new NotificationSpec();
+        String testString="운동하세요";
+        notificationSpec.phoneNumber = testString;
+        notificationSpec.body = testString;
+        notificationSpec.sender = testString;
+        notificationSpec.subject = testString;
+        notificationSpec.type = NotificationType.UNKNOWN;
+        notificationSpec.pebbleColor = notificationSpec.type.color;
+        GBApplication.deviceService().onNotification(notificationSpec);
     }
 
 

@@ -112,6 +112,7 @@ import nodomain.freeyourgadget.gadgetbridge.model.WeatherSpec;
 import nodomain.freeyourgadget.gadgetbridge.service.btle.AbstractBTLEDeviceSupport;
 import nodomain.freeyourgadget.gadgetbridge.service.btle.BLETypeConversions;
 import nodomain.freeyourgadget.gadgetbridge.service.btle.BtLEAction;
+import nodomain.freeyourgadget.gadgetbridge.service.btle.BtLEQueue;
 import nodomain.freeyourgadget.gadgetbridge.service.btle.GattCharacteristic;
 import nodomain.freeyourgadget.gadgetbridge.service.btle.GattService;
 import nodomain.freeyourgadget.gadgetbridge.service.btle.TransactionBuilder;
@@ -228,6 +229,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     public static int HEART_RATE = -1;
     public static int STEP_TIMER = -10;
     public static int STEP = -1;
+    public static int TOTAL_STEPS = -1;
 
 
     public HuamiSupport() {
@@ -263,7 +265,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             new InitOperation(authenticate, authFlags, cryptFlags, this, builder).perform();
             characteristicHRControlPoint = getCharacteristic(GattCharacteristic.UUID_CHARACTERISTIC_HEART_RATE_CONTROL_POINT);
             characteristicChunked = getCharacteristic(HuamiService.UUID_CHARACTERISTIC_CHUNKEDTRANSFER);
-            GB.toast(getContext(), "Initializing Huami device", Toast.LENGTH_SHORT, GB.INFO);
+//            GB.toast(getContext(), "Initializing Huami device", Toast.LENGTH_SHORT, GB.INFO);
         } catch (IOException e) {
             GB.toast(getContext(), "Initializing Huami device failed", Toast.LENGTH_SHORT, GB.ERROR, e);
         }
@@ -564,7 +566,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     @Override
     public void onSetHeartRateMeasurementInterval(int seconds) {
         try {
-            GB.toast(getContext(), "OnSetHeartRateMeasurementInterval: " + seconds, Toast.LENGTH_SHORT, GB.INFO);
+//            GB.toast(getContext(), "OnSetHeartRateMeasurementInterval: " + seconds, Toast.LENGTH_SHORT, GB.INFO);
             int minuteInterval = seconds / 60;
             minuteInterval = Math.min(minuteInterval, 120);
             minuteInterval = Math.max(0, minuteInterval);
@@ -1105,7 +1107,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             enableNotifyHeartRateMeasurements(enable, builder);
             if (enable) {
 
-                GB.toast(getContext(), "Real time heart rate measurement enabled", Toast.LENGTH_LONG, GB.INFO);
+//                GB.toast(getContext(), "Real time heart rate measurement enabled", Toast.LENGTH_LONG, GB.INFO);
 
                 builder.write(characteristicHRControlPoint, stopHeartMeasurementManual);
                 builder.write(characteristicHRControlPoint, startHeartMeasurementContinuous);
@@ -1160,7 +1162,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
         if (heartRateNotifyEnabled != enable) {
             BluetoothGattCharacteristic heartrateCharacteristic = getCharacteristic(GattCharacteristic.UUID_CHARACTERISTIC_HEART_RATE_MEASUREMENT);
             if (heartrateCharacteristic != null) {
-                GB.toast(getContext(), "notify enabled", Toast.LENGTH_LONG, GB.INFO);
+//                GB.toast(getContext(), "notify enabled", Toast.LENGTH_LONG, GB.INFO);
 
                 builder.notify(heartrateCharacteristic, enable);
                 heartRateNotifyEnabled = enable;
@@ -1305,6 +1307,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             LOG.error("error while sending simple vibrate command", e);
         }
     }
+
 
     private void processButtonAction() {
         if (currentButtonTimerActivationTime != currentButtonPressTime) {
@@ -1771,7 +1774,6 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             LOG.info("Got heartrate:");
             if (value.length == 2 && value[0] == 0) {
                 int hrValue = (value[1] & 0xff);
-                GB.toast(getContext(), "Heart Rate measured: " + hrValue, Toast.LENGTH_LONG, GB.INFO);
             }
             return;
         }
@@ -1951,6 +1953,8 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
 
                         HEART_RATE = sample.getHeartRate();
 
+
+
 //                        if (steps % 10 < 2) {
 //                            notifyDialog();
 ////                            DebugActivity.notifi(getContext());
@@ -1985,8 +1989,13 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
 //                        if(sample.getSteps() > 0){
 //                            vibrateOnce();
 //                        }
-
-                        STEP = sample.getSteps();
+                        STEP = getSteps();
+                        if (getTotalStep() < 0) {
+                            TOTAL_STEPS = beforeStep;
+                        } else {
+                            TOTAL_STEPS = getTotalStep();
+                            beforeStep = TOTAL_STEPS;
+                        }
 //                        STEP_TIMER++;
 //                        if(STEP_TIMER == -1){
 //                            beforeStep = step;

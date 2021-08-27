@@ -104,6 +104,23 @@
                 android:text="test Mutable"
                 />
 
+            <Button
+                android:id="@+id/testOneSecond"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                grid:layout_gravity="fill_horizontal"
+                grid:layout_columnSpan="1"
+                android:text="test One Second"
+                />
+            <Button
+                android:id="@+id/testFiveSecond"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                grid:layout_gravity="fill_horizontal"
+                grid:layout_columnSpan="1"
+                android:text="test five second"
+                />
+
 <!--            <Button-->
 <!--                android:id="@+id/incomingCallButton"-->
 <!--                android:layout_width="wrap_content"-->
