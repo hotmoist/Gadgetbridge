@@ -103,117 +103,115 @@
                 grid:layout_columnSpan="2"
                 android:text="test Mutable"
                 />
-
             <Button
-                android:id="@+id/testOneSecond"
+                android:id="@+id/sendEmail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 grid:layout_gravity="fill_horizontal"
-                grid:layout_columnSpan="1"
-                android:text="test One Second"
+                grid:layout_columnSpan="2"
+                android:text="send email"
                 />
+
+            <!--            <Button-->
+            <!--                android:id="@+id/incomingCallButton"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="incoming call" />-->
+
+            <!--            <Button-->
+            <!--                android:id="@+id/outgoingCallButton"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="outgoing call" />-->
+
+            <!--            <Button-->
+            <!--                android:id="@+id/startCallButton"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="start call" />-->
+
+            <!--            <Button-->
+            <!--                android:id="@+id/endCallButton"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="end call" />-->
+
+            <!--            <Button-->
+            <!--                android:id="@+id/setTimeButton"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="set time" />-->
+
+            <!--            <Button-->
+            <!--                android:id="@+id/setMusicInfoButton"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="set music info" />-->
+
+            <!--            <Button-->
+            <!--                android:id="@+id/HeartRateButton"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="Heart Rate Test" />-->
+
+            <!--            <Button-->
+            <!--                android:id="@+id/rebootButton"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="reboot" />-->
+
+            <!--            <Button-->
+            <!--                android:id="@+id/SetFetchTimeButton"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_columnSpan="2"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="Set Activity Fetch Time" />-->
+
+            <!--            <Button-->
+            <!--                android:id="@+id/factoryResetButton"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_columnSpan="2"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="factory reset" />-->
+
+            <!--            <Button-->
+            <!--                android:id="@+id/testNotificationButton"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_columnSpan="2"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="create test notification" />-->
+            <!--            <Button-->
+            <!--                android:id="@+id/testPebbleKitNotificationButton"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_columnSpan="2"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="create PebbleKit test notification" />-->
+            <!--            <Button-->
+            <!--                android:id="@+id/fetchDebugLogsButton"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_columnSpan="2"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="Fetch device Debug Logs" />-->
             <Button
-                android:id="@+id/testFiveSecond"
+                android:id="@+id/sendDataBase"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                grid:layout_columnSpan="2"
                 grid:layout_gravity="fill_horizontal"
-                grid:layout_columnSpan="1"
-                android:text="test five second"
-                />
-
-<!--            <Button-->
-<!--                android:id="@+id/incomingCallButton"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="incoming call" />-->
-
-<!--            <Button-->
-<!--                android:id="@+id/outgoingCallButton"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="outgoing call" />-->
-
-<!--            <Button-->
-<!--                android:id="@+id/startCallButton"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="start call" />-->
-
-<!--            <Button-->
-<!--                android:id="@+id/endCallButton"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="end call" />-->
-
-<!--            <Button-->
-<!--                android:id="@+id/setTimeButton"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="set time" />-->
-
-<!--            <Button-->
-<!--                android:id="@+id/setMusicInfoButton"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="set music info" />-->
-
-<!--            <Button-->
-<!--                android:id="@+id/HeartRateButton"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="Heart Rate Test" />-->
-
-<!--            <Button-->
-<!--                android:id="@+id/rebootButton"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="reboot" />-->
-
-<!--            <Button-->
-<!--                android:id="@+id/SetFetchTimeButton"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_columnSpan="2"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="Set Activity Fetch Time" />-->
-
-<!--            <Button-->
-<!--                android:id="@+id/factoryResetButton"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_columnSpan="2"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="factory reset" />-->
-
-<!--            <Button-->
-<!--                android:id="@+id/testNotificationButton"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_columnSpan="2"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="create test notification" />-->
-<!--            <Button-->
-<!--                android:id="@+id/testPebbleKitNotificationButton"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_columnSpan="2"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="create PebbleKit test notification" />-->
-<!--            <Button-->
-<!--                android:id="@+id/fetchDebugLogsButton"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_columnSpan="2"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="Fetch device Debug Logs" />-->
+                android:text="send DataBase" />
             <Button
                 android:id="@+id/testNewFunctionality"
                 android:layout_width="wrap_content"
@@ -221,56 +219,57 @@
                 grid:layout_columnSpan="2"
                 grid:layout_gravity="fill_horizontal"
                 android:text="Test New Functionality" />
-<!--            <Button-->
-<!--                android:id="@+id/shareLog"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_columnSpan="2"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="@string/share_log" />-->
-<!--            <Button-->
-<!--                android:id="@+id/showWidgetsButton"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_columnSpan="2"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="Show all registered app widgets IDs" />-->
-<!--            <Button-->
-<!--                android:id="@+id/deleteWidgets"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_columnSpan="2"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="Delete all registered app widgets IDs" />-->
-<!--            <Button-->
-<!--                android:id="@+id/showWidgetsPrefs"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_columnSpan="2"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="Show app Widgets Preferences" />-->
-<!--            <Button-->
-<!--                android:id="@+id/deleteWidgetsPrefs"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                grid:layout_columnSpan="2"-->
-<!--                grid:layout_gravity="fill_horizontal"-->
-<!--                android:text="Delete app Widgets Preferences" />-->
+            <!--            <Button-->
+            <!--                android:id="@+id/shareLog"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_columnSpan="2"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="@string/share_log" />-->
+            <!--            <Button-->
+            <!--                android:id="@+id/showWidgetsButton"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_columnSpan="2"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="Show all registered app widgets IDs" />-->
+            <!--            <Button-->
+            <!--                android:id="@+id/deleteWidgets"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_columnSpan="2"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="Delete all registered app widgets IDs" />-->
+            <!--            <Button-->
+            <!--                android:id="@+id/showWidgetsPrefs"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_columnSpan="2"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="Show app Widgets Preferences" />-->
+            <!--            <Button-->
+            <!--                android:id="@+id/deleteWidgetsPrefs"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                grid:layout_columnSpan="2"-->
+            <!--                grid:layout_gravity="fill_horizontal"-->
+            <!--                android:text="Delete app Widgets Preferences" />-->
 
-<!--            <CheckBox-->
-<!--                android:id="@+id/activity_list_debug_extra_time_range"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_margin="4dp"-->
-<!--                android:layout_marginTop="7dp"-->
-<!--                android:background="@color/accent"-->
-<!--                android:buttonTint="@color/btn_dark"-->
-<!--                android:padding="4dp"-->
-<!--                android:paddingLeft="10dp"-->
-<!--                android:text="Activity summary extra date range (takes long to generate when used)"-->
-<!--                android:textColor="@android:color/white"-->
-<!--                android:textStyle="bold"-->
-<!--                grid:layout_columnSpan="2" />-->
+            <!--            <CheckBox-->
+            <!--                android:id="@+id/activity_list_debug_extra_time_range"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:layout_margin="4dp"-->
+            <!--                android:layout_marginTop="7dp"-->
+            <!--                android:background="@color/accent"-->
+            <!--                android:buttonTint="@color/btn_dark"-->
+            <!--                android:padding="4dp"-->
+            <!--                android:paddingLeft="10dp"-->
+            <!--                android:text="Activity summary extra date range (takes long to generate when used)"-->
+            <!--                android:textColor="@android:color/white"-->
+            <!--                android:textStyle="bold"-->
+            <!--                grid:layout_columnSpan="2" />-->
+
         </androidx.gridlayout.widget.GridLayout>
 
     </ScrollView>

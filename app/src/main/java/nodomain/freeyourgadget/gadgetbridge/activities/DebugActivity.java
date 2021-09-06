@@ -16,36 +16,28 @@
 package nodomain.freeyourgadget.gadgetbridge.activities;
 
 import android.app.AlertDialog;
-import android.app.DatePickerDialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetHost;
 import android.appwidget.AppWidgetManager;
-import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -63,40 +55,24 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import nodomain.freeyourgadget.gadgetbridge.GBApplication;
 import nodomain.freeyourgadget.gadgetbridge.R;
 import nodomain.freeyourgadget.gadgetbridge.Widget;
 import nodomain.freeyourgadget.gadgetbridge.devices.miband.MiBandPreferencesActivity;
-import nodomain.freeyourgadget.gadgetbridge.devices.miband.VibrationProfile;
-import nodomain.freeyourgadget.gadgetbridge.devices.pebble.PebbleColor;
-import nodomain.freeyourgadget.gadgetbridge.devices.pebble.PebbleIconID;
-import nodomain.freeyourgadget.gadgetbridge.entities.Device;
-import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice;
 import nodomain.freeyourgadget.gadgetbridge.model.ActivitySample;
-import nodomain.freeyourgadget.gadgetbridge.model.CallSpec;
 import nodomain.freeyourgadget.gadgetbridge.model.DeviceService;
-import nodomain.freeyourgadget.gadgetbridge.model.MusicSpec;
-import nodomain.freeyourgadget.gadgetbridge.model.MusicStateSpec;
 import nodomain.freeyourgadget.gadgetbridge.model.NotificationSpec;
 import nodomain.freeyourgadget.gadgetbridge.model.NotificationType;
-import nodomain.freeyourgadget.gadgetbridge.model.RecordedDataTypes;
-import nodomain.freeyourgadget.gadgetbridge.service.btle.TransactionBuilder;
-import nodomain.freeyourgadget.gadgetbridge.service.serial.GBDeviceProtocol;
 import nodomain.freeyourgadget.gadgetbridge.util.GB;
 import nodomain.freeyourgadget.gadgetbridge.util.WidgetPreferenceStorage;
-import nodomain.freeyourgadget.gadgetbridge.service.devices.huami.amazfitgts2.AmazfitGTS2MiniSupport;
 
 import nodomain.freeyourgadget.gadgetbridge.service.devices.miband.RealtimeSamplesSupport;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huami.HuamiSupport;
 
 
 import static android.content.Intent.EXTRA_SUBJECT;
-import static nodomain.freeyourgadget.gadgetbridge.service.btle.GattCharacteristic.UUID_CHARACTERISTIC_ALERT_LEVEL;
 import static nodomain.freeyourgadget.gadgetbridge.util.GB.NOTIFICATION_CHANNEL_ID;
 
 public class DebugActivity extends AbstractGBActivity {
@@ -110,6 +86,7 @@ public class DebugActivity extends AbstractGBActivity {
     private int prev_total_steps = -1;
     private int step_count = 0;
 
+    private androidx.appcompat.app.AlertDialog dialog;
     private boolean flag = true;
 
     private RealtimeSamplesSupport realtimeSamplesSupport;
@@ -142,6 +119,11 @@ public class DebugActivity extends AbstractGBActivity {
     private Spinner sendTypeSpinner;
     private EditText editContent;
 
+
+    private void test() {
+        GB.toast("back test", GB.INFO, Toast.LENGTH_LONG);
+    }
+
     private int handleRealtimeSample(Serializable extra) {  // void -> int 형으로 변환
         int t = 0;  // 심박수 저장
 
@@ -149,6 +131,10 @@ public class DebugActivity extends AbstractGBActivity {
             ActivitySample sample = (ActivitySample) extra;
             heartRate = sample.getHeartRate();  // 심박수 측정 메소드. int형 반환
             steps = sample.getSteps();
+
+            if (heartRate > 0) {
+                test();
+            }
 
             if (steps > -1) {
                 prev_total_steps = total_steps;
@@ -176,7 +162,7 @@ public class DebugActivity extends AbstractGBActivity {
             super.run();
             do {
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(500);
                     Message msg = new Message();
                     msg.what = 1;
                     handler.sendMessage(msg);
@@ -196,7 +182,7 @@ public class DebugActivity extends AbstractGBActivity {
             switch (msg.what) {
                 case 1:
                     HRvalText.setText("Heart rate: " + HuamiSupport.HEART_RATE + "bpm");
-                    StepText.setText("Steps:" + HuamiSupport.TOTAL_STEPS);
+                    StepText.setText("Steps:" + total_steps);
                     break;
             }
             return false;
@@ -222,13 +208,14 @@ public class DebugActivity extends AbstractGBActivity {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelID)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setSmallIcon(R.drawable.ic_notification)
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle(title)
                 .setContentText(text)
                 .setContentIntent(pendingIntent)
 //                .addAction(R.drawable.ic_launcher_foreground, getString(R.string.action_quit), pendingIntent)
-                .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE)
-                .setAutoCancel(false);
+
+                .setDefaults(Notification.DEFAULT_SOUND /*| Notification.DEFAULT_VIBRATE*/)
+                .setAutoCancel(true);
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notificationManager.notify(id, builder.build());
@@ -303,7 +290,6 @@ public class DebugActivity extends AbstractGBActivity {
             });
         }
 
-        // mutable debug setting
         final boolean[] flag = {false};
         mHandler = new Handler();
         createNotificationChannel(DEFAULT, "default channel", NotificationManager.IMPORTANCE_HIGH);
@@ -311,30 +297,39 @@ public class DebugActivity extends AbstractGBActivity {
         Intent intent = new Intent(this, ControlCenterv2.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
+        final Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
         Button testMutableButton = findViewById(R.id.testMutable);
         {
             testMutableButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     new Thread(new Runnable() {
+
+                        long[] pattern = {500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
+                                500, 500, 500, 500, 500, 500, 500, 500, 500, 500};
+
                         @Override
                         public void run() {
-                                LOG.debug("debug activity test heart: " + HuamiSupport.HEART_RATE);
-                                LOG.debug("debug activity test step: " + HuamiSupport.STEP);
+//                                LOG.debug("test heart: " + HuamiSupport.HEART_RATE);
+//                                LOG.debug("test step: " + HuamiSupport.STEP);
                             try {
                                 mHandler.post(new Runnable() {
                                     @Override
                                     public void run() {
-                                        createNotification(DEFAULT, 20189, "운동하세요", "어깨 돌리기 10회 이상 실시!", intent);
+                                        createNotification(DEFAULT, 1, "운동하세요", "어깨 돌리기 10회 이상 실시!", intent);
                                     }
                                 });
-                                while(true) {
-                                    if (HuamiSupport.STEP >= 10) {
-                                        destroyNotification(20189);
-                                        break;
-                                    }
-                                    Thread.sleep(100);
+
+                                Thread.sleep(1000);
+                                vibrator.vibrate(pattern, -1);
+
+
+                                if (HuamiSupport.STEP >= 10) {
+                                    destroyNotification(1);
                                 }
+
+                                Thread.sleep(1000);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -343,37 +338,65 @@ public class DebugActivity extends AbstractGBActivity {
                 }
             });
         }
+        Button sendEmail = findViewById(R.id.sendEmail);
+        sendEmail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent email = new Intent(Intent.ACTION_SEND);
+                email.setType("plain/text");
+                String[] address = {"ljy9805@gmail.com"};
+                email.putExtra(Intent.EXTRA_EMAIL, address);
+                email.putExtra(Intent.EXTRA_SUBJECT, "Daily Report");
+                email.putExtra(Intent.EXTRA_TEXT, "하루동안 알람을 받은 횟수는 몇회입니까?\n1. 0~2회 \n2.3~4회\n5회이상\n\n실험을 하면서 기능적으로 문제가 되었던 부분이 있으면 작성해주세요.");
+                startActivity(email);
+            }
+        });
 
-        // one second debug setting
-        Button testOneSecondButton = findViewById(R.id.testOneSecond);
-        {
-            testOneSecondButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    BluetoothGattCharacteristic characteristic = new BluetoothGattCharacteristic(UUID_CHARACTERISTIC_ALERT_LEVEL, BluetoothGattCharacteristic.PROPERTY_WRITE, BluetoothGattCharacteristic.PERMISSION_WRITE);
-                    try {
-                        TransactionBuilder builder = new TransactionBuilder("vibrate once");
-                        builder.write(characteristic, new byte[]{3});
-                        builder.write(characteristic, new byte[]{3});
-//                        builder.queue(getQueue());
-                    } catch (Exception e){
-                        LOG.error("error in static vibrate once", e);
-                    }
-                }
-            });
-        }
-
-        // five second debug setting
-        Button testFiveSecondButton = findViewById(R.id.testFiveSecond);
-        {
-            testFiveSecondButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                }
-            });
-        }
-
+        Button dataTest = findViewById(R.id.sendDataBase);
+        dataTest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                String userID = "test";
+//                String userPassword = "test";
+//                String userGender = "test";
+//                String userEmail = "test";
+//
+//                Response.Listener<String> responseListener = new Response.Listener<String>() {
+//                    @Override
+//                    public void onResponse(String response) {
+//                        try{
+//                            JSONObject jsonResponse = new JSONObject(response);
+//                            boolean success = jsonResponse.getBoolean("success");
+//                            if(success){
+//                                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(DebugActivity.this);
+//                                dialog = builder.setMessage("성공")
+//                                        .setPositiveButton("확인",null)
+//                                        .create();
+//                                dialog.show();
+//                                return;
+//                            }
+//                            else{
+//
+//                                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(DebugActivity.this);
+//                                dialog = builder.setMessage("실패")
+//                                        .setNegativeButton("확인",null)
+//                                        .create();
+//                                dialog.show();
+//                            }
+//                        }
+//                        catch (Exception e){
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                };
+//                RegisterRequest registerRequest = new RegisterRequest(userID, userPassword, userGender, userEmail, responseListener);
+//                RequestQueue queue = Volley.newRequestQueue(DebugActivity.this);
+//                queue.add(registerRequest);
+                InsertDB insertDB = new InsertDB(DebugActivity.this);
+                insertDB.insertData("1","1","1","1");
+            }
+        });
+//
 //        Button incomingCallButton = findViewById(R.id.incomingCallButton);
 //        incomingCallButton.setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -696,11 +719,6 @@ public class DebugActivity extends AbstractGBActivity {
                     }
                 })
                 .show();
-    }
-
-    //set vibration timer for mi band
-    private void vibrationTimer(){
-
     }
 
     private void testNewFunctionality() {

@@ -1,18 +1,14 @@
 /*  Copyright (C) 2016-2020 Andreas Shimokawa, Carsten Pfeiffer, Daniele
     Gobbetti, Johannes Tysiak, Taavi Eomäe, vanous
-
     This file is part of Gadgetbridge.
-
     Gadgetbridge is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
     by the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-
     Gadgetbridge is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Affero General Public License for more details.
-
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities;
@@ -32,6 +28,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.net.wifi.aware.Characteristics;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -72,17 +69,23 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 import de.cketti.library.changelog.ChangeLog;
 import nodomain.freeyourgadget.gadgetbridge.GBApplication;
 import nodomain.freeyourgadget.gadgetbridge.R;
 import nodomain.freeyourgadget.gadgetbridge.adapter.GBDeviceAdapterv2;
+import nodomain.freeyourgadget.gadgetbridge.deviceevents.pebble.GBDeviceEventDataLogging;
 import nodomain.freeyourgadget.gadgetbridge.devices.DeviceManager;
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice;
 import nodomain.freeyourgadget.gadgetbridge.model.NotificationSpec;
 import nodomain.freeyourgadget.gadgetbridge.model.NotificationType;
+import nodomain.freeyourgadget.gadgetbridge.service.btle.AbstractBTLEDeviceSupport;
+import nodomain.freeyourgadget.gadgetbridge.service.btle.AbstractBTLEOperation;
+import nodomain.freeyourgadget.gadgetbridge.service.btle.GattCharacteristic;
 import nodomain.freeyourgadget.gadgetbridge.service.btle.TransactionBuilder;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huami.HuamiSupport;
+import nodomain.freeyourgadget.gadgetbridge.service.devices.huami.InsertDB;
 import nodomain.freeyourgadget.gadgetbridge.util.AndroidUtils;
 import nodomain.freeyourgadget.gadgetbridge.util.GB;
 import nodomain.freeyourgadget.gadgetbridge.util.Prefs;
@@ -97,7 +100,6 @@ public class ControlCenterv2 extends AppCompatActivity
     public static final int MENU_REFRESH_CODE = 1;
     private static PhoneStateListener fakeStateListener;
     private static final Logger LOG = LoggerFactory.getLogger(DebugActivity.class);
-    private static final int MUTABILITY = 0, ONE_SECOND = 1, FIVE_SECOND = 2;
 
     //needed for KK compatibility
     static {
@@ -134,7 +136,6 @@ public class ControlCenterv2 extends AppCompatActivity
     private final String DEFAULT = "DEFAULT";
 
     public static int count = 0;
-
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -178,7 +179,6 @@ public class ControlCenterv2 extends AppCompatActivity
         showFabIfNeccessary();
 
         /* uncomment to enable fixed-swipe to reveal more actions
-
         ItemTouchHelper swipeToDismissTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(
                 ItemTouchHelper.LEFT , ItemTouchHelper.RIGHT) {
             @Override
@@ -186,29 +186,22 @@ public class ControlCenterv2 extends AppCompatActivity
                 if(dX>50)
                     dX = 50;
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-
             }
-
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
                 GB.toast(getBaseContext(), "onMove", Toast.LENGTH_LONG, GB.ERROR);
-
                 return false;
             }
-
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                 GB.toast(getBaseContext(), "onSwiped", Toast.LENGTH_LONG, GB.ERROR);
-
             }
-
             @Override
             public void onChildDrawOver(Canvas c, RecyclerView recyclerView,
                                         RecyclerView.ViewHolder viewHolder, float dX, float dY,
                                         int actionState, boolean isCurrentlyActive) {
             }
         });
-
         swipeToDismissTouchHelper.attachToRecyclerView(deviceListView);
         */
 
@@ -267,121 +260,187 @@ public class ControlCenterv2 extends AppCompatActivity
          *                    3. When notified for exercise and measured HuamiSupport.STEP >= 10, destroy notification
          *                    4. When user is moving (that is HuamiSupport.STEP > 0), reset the timer
          */
-
-        final int MUTABILITY = 0;
-        final int ONE_SECOND = 1;
-        final int FIVE_SECOND = 2;
-
+        int MUTABILITY=0;
+        int ONESECOND=1;
+        int FIVESECOND=2;
         final boolean[] flag = {false};
-        mHandler = new Handler();
-        createNotificationChannel(DEFAULT, "default channel", NotificationManager.IMPORTANCE_HIGH);
 
-        Intent intent = new Intent(this, ControlCenterv2.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
-//        new Thread(new Runnable() {
-//            int count = 0;
-//            int total_step = 0;
-//
-//            @Override
-//            public void run() {
-//                while (true) {
-//                    LOG.debug("debug test heart: " + HuamiSupport.HEART_RATE);
-//                    LOG.debug("debug test step: " + HuamiSupport.STEP);
-//
-//                    if (HuamiSupport.HEART_RATE > 0 && HuamiSupport.STEP <= 10) {  // 심장 박동 감지 됨
-//
-//                        if(count < 1) {
-//                            mHandler.post(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    createNotification(DEFAULT, 1956, "운동하세요", "어깨 돌리기 10회 이상 실시!", intent);
-//                                    count++;
-//                                }
-//                            });
-//                        }
-//                    }
-//
-//                    if(HuamiSupport.STEP > 10){
-//                        destroyNotification(1956);
-//                    }
-//
-//                    try {
-//                        Thread.sleep(1000);
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        }).start();
 
+//        mHandler = new Handler();
+//        createNotificationChannel(DEFAULT, "default channel", NotificationManager.IMPORTANCE_HIGH);
+//
+//        Intent intent = new Intent(this, ControlCenterv2.class);
+//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//
+//                new Thread(new Runnable() {
+//
+//                    int total_step = 0;
+//                    @Override
+//                    public void run() {
+//                                    while (true) {
+//                                        switch (MUTABILITY) {
+//                                            case 0:
         LOG.debug("test heart: " + HuamiSupport.HEART_RATE);
         LOG.debug("test step: " + HuamiSupport.STEP);
 
-        final Timer timer = new Timer();
-        TimerTask Task = new TimerTask() {
-            @Override
-            public void run() {
-                switch (MUTABILITY) {
-                    case 0:
-                        // 20 second alarm from smart phone
-                        if (HuamiSupport.HEART_RATE > 0) {
-                            // heart beat sensed
-                            stepTimer++;
-                            LOG.debug("check Activity "+stepTimer+" : "+HuamiSupport.HEART_RATE+"  "+HuamiSupport.TOTAL_STEPS +" "+(HuamiSupport.TOTAL_STEPS - beforeStep));
-                            if (stepTimer == -1){
-                                beforeStep = HuamiSupport.TOTAL_STEPS;
-                            }
-                            if (stepTimer == 0){
-                                // None
-                            }else if (stepTimer < 40 || HuamiSupport.STEP >= 10){
-                                // stop alarm
-                                if (HuamiSupport.TOTAL_STEPS - beforeStep >= 10){
-                                    start = 1;
-                                    destroyNotification(1956);
-                                }
-                                start = intent.getIntExtra("start", 0);
-                                LOG.debug("check activity " + start);
-                            }else if (stepTimer >= 40){
-                                destroyNotification(1956);
-                                start = 1;
-                                beforeStep = HuamiSupport.TOTAL_STEPS;
-                            } else if (stepTimer == resetTime){
-                                // period
-                                start = 0;
+//                                                if (HuamiSupport.HEART_RATE > 0 && HuamiSupport.STEP <= 10) {  // 심장 박동 감지 됨
+//                                                    stepTimer++;
+//                                                    LOG.debug("check Activity "+stepTimer+" : "+HuamiSupport.HEART_RATE+"  "+HuamiSupport.TOTAL_STEP +" "+(HuamiSupport.TOTAL_STEP - beforeStep));
+//                                                    if (stepTimer == -1) {
+//                                                        beforeStep = HuamiSupport.TOTAL_STEP;
+//                                                    }
+//                                                    if (stepTimer == 0) {
+//
+//                                                    }else if (stepTimer < 40 || HuamiSupport.TOTAL_STEP-beforeStep>10) {                 //알람 종료
+//                                                        if (HuamiSupport.TOTAL_STEP-beforeStep > 10) {
+//                                                            start=1;
+//                                                            destroyNotification(1956);
+//                                                        }
+//                                                    }
+//                                                    else if(stepTimer==40){
+//                                                            destroyNotification(1956);
+//                                                        beforeStep = HuamiSupport.TOTAL_STEP;
+//                                                    }
+//                                                    else if (stepTimer == resetTime) {                 //주기
+//                                                        start = 0;
+//
+//                                                        if (beforeStep != 0 && HuamiSupport.TOTAL_STEP - beforeStep < 10) {        //이전과 비교해서 걸음수 체크
+//                                                                mHandler.post(new Runnable() {
+//                                                                @Override
+//                                                                public void run() {
+//                                                                    if(HuamiSupport.SEND_DATA==0&&count==0) {
+////                                                                        createNotification(DEFAULT, 1956, "운동하세요", "어깨 돌리기 10회 이상 실시!", intent);
+//
+//                                                                        count=1;
+//                                                                    }
+//                                                                }
+//                                                            });
+//                                                            vibration_timer(1,1,MUTABILITY);
 
-                                if (beforeStep != 0 && HuamiSupport.TOTAL_STEPS - beforeStep < 10) {
-                                    // 이전과 비교해서 걸음수 체크
-                                    mHandler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            createNotification(DEFAULT, 1956, "운동하세요", "어깨 돌리기 10회 이상 실시!", intent);
-                                        }
-                                    });
-                                    vibration_timer(1, 1, MUTABILITY);
-                                }
 
-                                beforeStep = HuamiSupport.TOTAL_STEPS;
-                                stepTimer = -1;
-                            }
-                        }
+//                                                        }
+//
+//                                                        beforeStep = HuamiSupport.TOTAL_STEP;
+//                                                        stepTimer = -1;
+//                                                    }
 
-                        break;
-                    case 1:
-                        // one second alarm from mi band
-                        checkActivity(1, 1, ONE_SECOND);
-                        break;
-                    case 2:
-                        // five second alarm from mi band
-                        checkActivity(1, 1, FIVE_SECOND);
-                        break;
-                }
-            }
-        };
-        timer.schedule(Task, 0, 1000);
+
+
+//                                                    if (count < 1) {
+//                                                        mHandler.post(new Runnable() {
+//                                                            @Override
+//                                                            public void run() {
+//                                                                createNotification(DEFAULT, 1956, "운동하세요", "어깨 돌리기 10회 이상 실시!", intent);
+//
+//                                                            }
+//                                                        });
+//                                                    }
+//                                                }
+
+//                                                break;
+//
+//                                            case 1:
+//                                                checkActivity(1,1,ONESECOND);
+//                                                break;
+//                                            case 2:
+//                                                checkActivity(1,1,FIVESECOND);
+//                                                break;
+//                                        }
+
+//                                        try {
+//                                            Thread.sleep(1000);
+//                                        } catch (InterruptedException e) {
+//                                            e.printStackTrace();
+//                                        }
+//
+//                        }
+//                    }
+//                }).start();
+
+
+//        final Timer timer = new Timer();
+//        TimerTask Task = new TimerTask() {
+//            @Override
+//            public void run() {
+//
+//
+//                switch (MUTABILITY) {
+//                    case 0:
+//                        LOG.debug("test heart: " + HuamiSupport.HEART_RATE);
+//                        LOG.debug("test step: " + HuamiSupport.STEP);
+//
+//                        if (HuamiSupport.HEART_RATE > 0) {  // 심장 박동 감지 됨
+//                            stepTimer++;
+//                            LOG.debug("check Activity "+stepTimer+" : "+HuamiSupport.HEART_RATE+"  "+HuamiSupport.TOTAL_STEP +" "+(HuamiSupport.TOTAL_STEP - beforeStep));
+//                            if (stepTimer == -1) {
+//                                beforeStep = HuamiSupport.TOTAL_STEP;
+//                            }
+//                            if (stepTimer == 0) {
+//
+//                            }else if (stepTimer < 40 || HuamiSupport.STEP>10) {                 //알람 종료
+//                                if (HuamiSupport.TOTAL_STEP-beforeStep > 10) {
+//                                    start=1;
+//                                    destroyNotification(1956);
+//                                }
+////                                start=intent.getIntExtra("start",0);
+//                                LOG.debug("check Activity "+start);
+//                            }
+//                            else if(stepTimer==40){
+//                                destroyNotification(1956);
+//                                start=1;
+//                                beforeStep = HuamiSupport.TOTAL_STEP;
+//                            }
+//                            else if (stepTimer == resetTime) {                 //주기
+//                                start = 0;
+//
+//                                if (beforeStep != 0 && HuamiSupport.TOTAL_STEP - beforeStep < 10) {        //이전과 비교해서 걸음수 체크
+//
+//                                    mHandler.post(new Runnable() {
+//                                        @Override
+//                                        public void run() {
+////                                            createNotification(DEFAULT, 1956, "운동하세요", "어깨 돌리기 10회 이상 실시!", intent);
+//
+//                                        }
+//                                    });
+//                                    vibration_timer(1,1,MUTABILITY);
+//                                }
+//
+//                                beforeStep = HuamiSupport.TOTAL_STEP;
+//                                stepTimer = -1;
+//                            }
+//
+//
+//
+////                                                    if (count < 1) {
+////                                                        mHandler.post(new Runnable() {
+////                                                            @Override
+////                                                            public void run() {
+////                                                                createNotification(DEFAULT, 1956, "운동하세요", "어깨 돌리기 10회 이상 실시!", intent);
+////
+////                                                            }
+////                                                        });
+////                                                    }
+//                        }
+//
+//                        break;
+//
+//                    case 1:
+//                        checkActivity(1,1,ONESECOND);
+//                        break;
+//                    case 2:
+//                        checkActivity(1,1,FIVESECOND);
+//                        break;
+//                }
+//            }
+//        };
+//        timer.schedule(Task, 0, 1000);
+
+
     }
-
+    /**Add Alram Algorithm**/
 //    private void vibrateOnce() {
+//
 //        BluetoothGattCharacteristic characteristic = getCharacteristic(UUID_CHARACTERISTIC_ALERT_LEVEL);
 //        try {
 //            TransactionBuilder builder = performInitialized("Vibrate once");
@@ -394,39 +453,19 @@ public class ControlCenterv2 extends AppCompatActivity
 //        }
 //    }
 
-    void checkActivity(int period, int time, int casenum) {
-        LOG.debug("check Activity "+stepTimer+" : "+HuamiSupport.HEART_RATE+"  "+HuamiSupport.TOTAL_STEPS +" "+(HuamiSupport.TOTAL_STEPS - beforeStep));
-        if(HuamiSupport.HEART_RATE > 40) {
 
-            stepTimer++;
-            if (stepTimer == -1) {
-                beforeStep = HuamiSupport.TOTAL_STEPS;
-            }
-            if (stepTimer == 0) {
-                //None
-            } else if (stepTimer < 20) {
-                //알람 조건 종료
-                // TODO : vibration must stop when step count is over 10
-                if (beforeStep != 0 && HuamiSupport.TOTAL_STEPS - beforeStep > 10) {
-                    start = 1;
-                }
-            } else if (stepTimer == 30) {
-                //알람 종료
-                start = 1;
-                beforeStep = HuamiSupport.TOTAL_STEPS;
-            } else if (stepTimer == resetTime) {
-                //주기
-                start = 0;
 
-                if (beforeStep != 0 && HuamiSupport.TOTAL_STEPS - beforeStep < 10) {        //이전과 비교해서 걸음수 체크
-                    vibration_timer(period,time,casenum);
-                }
-                beforeStep = HuamiSupport.TOTAL_STEPS;
-                stepTimer = -1;
-            }
-        }
+    public void notification(){
+        NotificationSpec notificationSpec = new NotificationSpec();
+        String testString="운동하세요";
+        notificationSpec.phoneNumber = testString;
+        notificationSpec.body = testString;
+        notificationSpec.sender = testString;
+        notificationSpec.subject = testString;
+        notificationSpec.type = NotificationType.UNKNOWN;
+        notificationSpec.pebbleColor = notificationSpec.type.color;
+        GBApplication.deviceService().onNotification(notificationSpec);
     }
-
     private void vibration_timer(int period, final int time,int casenum) {
         final Timer timer = new Timer();
         TimerTask Task = new TimerTask() {
@@ -436,20 +475,20 @@ public class ControlCenterv2 extends AppCompatActivity
             public void run() {
                 switch (casenum) {
                     case 0:
-                        miBand_notification();
+                        notification();
                         if(start==1){
                             timer.cancel();
                         }
                         break;
                     case 1:
-                        miBand_notification();
+                        notification();
                         cnt++;
                         if (cnt==1) {
                             cnt=0;
                             timer.cancel();
                         }
                     case 2:
-                        miBand_notification();
+                        notification();
                         cnt++;
                         if (cnt==5) {
                             cnt=0;
@@ -460,36 +499,53 @@ public class ControlCenterv2 extends AppCompatActivity
         };
         timer.schedule(Task, 0, period * 1500);
     }
-
     int stepTimer = -10;
     int beforeStep = 0;
-    int start = 0;
-    int resetTime = 60;
+    int start=0;
+    int resetTime=60;
 
-    public void miBand_notification() {
-        NotificationSpec notificationSpec = new NotificationSpec();
-        String testString = "운동하세요";
-        notificationSpec.phoneNumber = testString;
-        notificationSpec.body = testString;
-        notificationSpec.sender = testString;
-        notificationSpec.subject = testString;
-        notificationSpec.type = NotificationType.UNKNOWN;
-        notificationSpec.pebbleColor = notificationSpec.type.color;
-        GBApplication.deviceService().onNotification(notificationSpec);
+    void checkActivity(int period, int time, int casenum) {
+        LOG.debug("check Activity "+stepTimer+" : "+HuamiSupport.HEART_RATE+"  "+HuamiSupport.TOTAL_STEP +" "+(HuamiSupport.TOTAL_STEP - beforeStep));
+        if(HuamiSupport.HEART_RATE > 40) {
+            stepTimer++;
+            if (stepTimer == -1) {
+                beforeStep = HuamiSupport.TOTAL_STEP;
+            }
+            if (stepTimer == 0) {
+
+            } else if (stepTimer < 20) {                //알람 조건 종료
+                if (beforeStep != 0 && HuamiSupport.TOTAL_STEP - beforeStep > 10) {
+                    start = 1;
+                }
+            } else if (stepTimer == 30) {                 //알람 종료
+                start = 1;
+                beforeStep = HuamiSupport.TOTAL_STEP;
+            } else if (stepTimer == resetTime) {                 //주기
+                start = 0;
+
+                if (beforeStep != 0 && HuamiSupport.TOTAL_STEP - beforeStep < 10) {        //이전과 비교해서 걸음수 체크
+                    vibration_timer(period,time,casenum);
+                }
+                beforeStep = HuamiSupport.TOTAL_STEP;
+                stepTimer = -1;
+            }
+        }
     }
 
 
+
+
+
     @RequiresApi(api = Build.VERSION_CODES.O)
-    void createNotificationChannel(String channelID, String channelName, int importance) {
-        if (Build.VERSION.SDK_INT >= (Build.VERSION_CODES.BASE - 1)) {
-            NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+    void createNotificationChannel(String channelID, String channelName, int importance){
+        if(Build.VERSION.SDK_INT >= (Build.VERSION_CODES.BASE-1)){
+            NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
             notificationManager.createNotificationChannel(new NotificationChannel(channelID, channelName, importance));
         }
     }
 
-    void createNotification(String channelID, int id, String title, String text, Intent intent) {
+    void createNotification(String channelID, int id, String title, String text, Intent intent){
         PendingIntent pendingIntent = PendingIntent.getActivities(this, 0, new Intent[]{intent}, PendingIntent.FLAG_CANCEL_CURRENT);
-
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelID)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
@@ -498,14 +554,16 @@ public class ControlCenterv2 extends AppCompatActivity
                 .setContentIntent(pendingIntent)
 //                .addAction(R.drawable.ic_launcher_foreground, getString(R.string.action_quit), pendingIntent)
 //                .setAutoCancel(true)
-                .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE);
+                .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE)
+                ;
 
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         notificationManager.notify(id, builder.build());
     }
 
-    void destroyNotification(int id) {
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+    public void destroyNotification(int id){
+        NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        HuamiSupport.SEND_DATA=1;
         notificationManager.cancel(id);
     }
 
@@ -732,4 +790,5 @@ public class ControlCenterv2 extends AppCompatActivity
         }
         AndroidUtils.setLanguage(this, language);
     }
+
 }
