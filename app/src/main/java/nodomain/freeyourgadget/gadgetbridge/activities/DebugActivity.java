@@ -80,15 +80,8 @@ public class DebugActivity extends AbstractGBActivity {
 
     private static final Logger LOG = LoggerFactory.getLogger(DebugActivity.class);
 
-    private int heartRate = 0;  // realtime heart rate
-    private int steps = 0;      // realtime steps data
-    private int total_steps = 0;
-    private int prev_total_steps = -1;
-    private int step_count = 0;
 
     private androidx.appcompat.app.AlertDialog dialog;
-    private boolean flag = true;
-
     private RealtimeSamplesSupport realtimeSamplesSupport;
 
     private static final String EXTRA_REPLY = "reply";
@@ -119,29 +112,10 @@ public class DebugActivity extends AbstractGBActivity {
     private Spinner sendTypeSpinner;
     private EditText editContent;
 
-
-    private void test() {
-        GB.toast("back test", GB.INFO, Toast.LENGTH_LONG);
-    }
-
-    private int handleRealtimeSample(Serializable extra) {  // void -> int 형으로 변환
-        int t = 0;  // 심박수 저장
-
+    private void handleRealtimeSample(Serializable extra) {  // void -> int 형으로 변환
         if (extra instanceof ActivitySample) {
             ActivitySample sample = (ActivitySample) extra;
-            heartRate = sample.getHeartRate();  // 심박수 측정 메소드. int형 반환
-            steps = sample.getSteps();
-
-            if (heartRate > 0) {
-                test();
-            }
-
-            if (steps > -1) {
-                prev_total_steps = total_steps;
-                total_steps = steps;
-            }
         }
-        return t;
     }
 
     public static void notifi(Context context) {
@@ -151,7 +125,6 @@ public class DebugActivity extends AbstractGBActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         GB.toast("pressed", GB.INFO, Toast.LENGTH_LONG);
-//                                        flag = false;
                     }
                 }).show();
     }
@@ -171,7 +144,6 @@ public class DebugActivity extends AbstractGBActivity {
                     e.printStackTrace();
                 }
             } while (true);
-
         }
     }
 
@@ -182,7 +154,7 @@ public class DebugActivity extends AbstractGBActivity {
             switch (msg.what) {
                 case 1:
                     HRvalText.setText("Heart rate: " + HuamiSupport.HEART_RATE + "bpm");
-                    StepText.setText("Steps:" + total_steps);
+                    StepText.setText("Steps:" + HuamiSupport.TOTAL_STEP);
                     break;
             }
             return false;
@@ -208,14 +180,14 @@ public class DebugActivity extends AbstractGBActivity {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelID)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
                 .setContentText(text)
                 .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
 //                .addAction(R.drawable.ic_launcher_foreground, getString(R.string.action_quit), pendingIntent)
-
-                .setDefaults(Notification.DEFAULT_SOUND /*| Notification.DEFAULT_VIBRATE*/)
-                .setAutoCancel(true);
+                .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE)
+                ;
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notificationManager.notify(id, builder.build());
@@ -297,39 +269,30 @@ public class DebugActivity extends AbstractGBActivity {
         Intent intent = new Intent(this, ControlCenterv2.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
-        final Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-
         Button testMutableButton = findViewById(R.id.testMutable);
         {
             testMutableButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     new Thread(new Runnable() {
-
-                        long[] pattern = {500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
-                                500, 500, 500, 500, 500, 500, 500, 500, 500, 500};
-
                         @Override
                         public void run() {
-//                                LOG.debug("test heart: " + HuamiSupport.HEART_RATE);
-//                                LOG.debug("test step: " + HuamiSupport.STEP);
                             try {
                                 mHandler.post(new Runnable() {
                                     @Override
                                     public void run() {
-                                        createNotification(DEFAULT, 1, "운동하세요", "어깨 돌리기 10회 이상 실시!", intent);
+                                        createNotification(DEFAULT, 1259, "운동하세요", "어깨 돌리기 10회 이상 실시!", intent);
                                     }
                                 });
 
                                 Thread.sleep(1000);
-                                vibrator.vibrate(pattern, -1);
 
-
-                                if (HuamiSupport.STEP >= 10) {
-                                    destroyNotification(1);
+                                while (true) {
+                                    if (HuamiSupport.STEP >= 10) {
+                                        destroyNotification(1259);
+                                    }
+                                    Thread.sleep(500);
                                 }
-
-                                Thread.sleep(1000);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -393,7 +356,7 @@ public class DebugActivity extends AbstractGBActivity {
 //                RequestQueue queue = Volley.newRequestQueue(DebugActivity.this);
 //                queue.add(registerRequest);
                 InsertDB insertDB = new InsertDB(DebugActivity.this);
-                insertDB.insertData("1","1","1","1");
+                insertDB.insertData("1", "1", "1", "1");
             }
         });
 //

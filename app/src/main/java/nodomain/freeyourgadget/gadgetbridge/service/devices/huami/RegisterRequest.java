@@ -7,21 +7,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RegisterRequest extends StringRequest {
-    final static private String URL = "https://ljy897.cafe24.com/UserRegister.php";
-    private Map<String, String> parameters;
+    final static private String URL= "https://ljy897.cafe24.com/UserRegister.php";
+    private Map<String,String> parameters;
 
-    public RegisterRequest(String userID, String userPassword, String userGender, String userEmail, Response.Listener<String> listener) {
+    public RegisterRequest(String time, String heartrate, String totalstep, String realtimestep, Response.Listener<String> listener) {
         super(Method.POST, URL, listener, null);
         parameters = new HashMap<>();
-        parameters.put("userID", userID);
-        parameters.put("userPassword", userPassword);
-        parameters.put("userGender", userGender);
-        parameters.put("userEmail", userEmail);
-
+        parameters.put("time",time);
+        parameters.put("heartrate",heartrate);
+        parameters.put("totalstep",totalstep);
+        parameters.put("realtimestep",realtimestep);
     }
 
     @Override
-    public Map<String, String> getParams() {
+    public Map<String, String> getParams(){
         return parameters;
     }
 }

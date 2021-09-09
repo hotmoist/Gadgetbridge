@@ -41,6 +41,7 @@ public class InsertDB {
                     boolean success = jsonResponse.getBoolean("success");
                     if (success) {
 //                                Toast.makeText(context, "성공",Toast.LENGTH_SHORT);
+
                         return;
                     }
                 } catch (Exception e) {
@@ -48,6 +49,7 @@ public class InsertDB {
                 }
             }
         };
+
         RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, responseListener);
         RequestQueue queue = Volley.newRequestQueue(context);
         queue.add(registerRequest);
