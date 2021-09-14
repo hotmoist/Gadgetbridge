@@ -255,14 +255,14 @@ public class ControlCenterv2 extends AppCompatActivity
                                 HuamiSupport.IS_NOTIFY = false;
                             }
                         });
-                    } else if (HuamiSupport.WEAR_NOTIFY_TIMER % 20 == 0) {
-                        // 20초 마다 워치 착용 여부 감지
+                    } else if (HuamiSupport.WEAR_NOTIFY_TIMER % 60 == 0) {
+                        // 60초 마다 워치 착용 여부 감지
 
                         LOG.debug("check Activity >> notify: " + HuamiSupport.WEAR_NOTIFY_TIMER);
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                createNotification(DEFAULT, 13009, "워치를 착용해 주세요", "워치 착용이 감지되지 않았습니다. 워치를 착용해주세요", intent);
+                                createNotification(DEFAULT, 13009, "워치를 착용 및 연결해 주세요", "워치 착용(및 연결)이 감지되지 않았습니다. 워치를 착용해주세요", intent);
                                 HuamiSupport.WEAR_NOTIFY_TIMER = 1;
                             }
                         });

@@ -33,7 +33,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Vibrator;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -110,6 +109,7 @@ public class DebugActivity extends AbstractGBActivity {
 
 
     private Spinner sendTypeSpinner;
+    private Spinner sendCaseSpinner;
     private EditText editContent;
 
     private void handleRealtimeSample(Serializable extra) {  // void -> int 형으로 변환
@@ -155,6 +155,17 @@ public class DebugActivity extends AbstractGBActivity {
                 case 1:
                     HRvalText.setText("Heart rate: " + HuamiSupport.HEART_RATE + "bpm");
                     StepText.setText("Steps:" + HuamiSupport.TOTAL_STEP);
+                    timePeriod.setText("경과 시간: " + (int)(HuamiSupport.STEP_TIMER/60) + ":" +(HuamiSupport.STEP_TIMER)%60);
+                    inTimeStep.setText("주기 내 STEP: " + HuamiSupport.IN_TIME_STEP);
+                    if (HuamiSupport.CASES == HuamiSupport.NONE){
+                        currentCase.setText("Current case: NONE" );
+                    } else if(HuamiSupport.CASES == HuamiSupport.MUTABILITY){
+                        currentCase.setText("Current case: Mutability");
+                    } else if(HuamiSupport.CASES == HuamiSupport.ONE_SECOND){
+                        currentCase.setText("Current case: One Second");
+                    } else if(HuamiSupport.CASES == HuamiSupport.FIVE_SECOND){
+                        currentCase.setText("Current case: Five Second");
+                    }
                     break;
             }
             return false;
@@ -163,6 +174,9 @@ public class DebugActivity extends AbstractGBActivity {
 
     TextView HRvalText;
     TextView StepText;
+    TextView timePeriod;
+    TextView inTimeStep;
+    TextView currentCase;
 
     Handler mHandler;
     private final String DEFAULT = "DEFAULT";
@@ -177,7 +191,6 @@ public class DebugActivity extends AbstractGBActivity {
 
     void createNotification(String channelID, int id, String title, String text, Intent intent) {
         PendingIntent pendingIntent = PendingIntent.getActivities(this, 0, new Intent[]{intent}, PendingIntent.FLAG_CANCEL_CURRENT);
-
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelID)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setSmallIcon(R.drawable.ic_notification)
@@ -188,7 +201,6 @@ public class DebugActivity extends AbstractGBActivity {
 //                .addAction(R.drawable.ic_launcher_foreground, getString(R.string.action_quit), pendingIntent)
                 .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE)
                 ;
-
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notificationManager.notify(id, builder.build());
     }
@@ -197,6 +209,17 @@ public class DebugActivity extends AbstractGBActivity {
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notificationManager.cancel(id);
     }
+
+    class Lab{
+        String name = "";
+        int ival;
+
+        Lab(String caseName, int val ){
+            name = caseName;
+            ival = val;
+        }
+    }
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -220,9 +243,35 @@ public class DebugActivity extends AbstractGBActivity {
         sendTypeSpinner = findViewById(R.id.sendTypeSpinner);
         sendTypeSpinner.setAdapter(spinnerArrayAdapter);
 
+        // Lab cases spinner add
+        String[] cases = {"NONE", "MUTABILITY", "ONE SECOND", "FIVE SECOND"};
+        ArrayAdapter<String> caseSpinnerArrayAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, cases);
+        sendCaseSpinner = findViewById(R.id.sendCaseSpinner);
+        sendCaseSpinner.setAdapter(caseSpinnerArrayAdopter);
+
         HRvalText = (TextView) findViewById(R.id.realtimeHR);
         StepText = (TextView) findViewById(R.id.realtimeSteps);
+        timePeriod = (TextView) findViewById(R.id.timePeriod);
+        inTimeStep = (TextView) findViewById(R.id.inTimeStep);
+        currentCase = (TextView) findViewById(R.id.currentCase);
         new TimeThread().start();
+
+        Button caseSetButton = findViewById(R.id.setLabCase);
+        caseSetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String selectedState = (String)sendCaseSpinner.getSelectedItem();
+                if(selectedState.equals("NONE")){
+                    HuamiSupport.CASES = HuamiSupport.NONE;
+                }else if(selectedState.equals("MUTABILITY")){
+                    HuamiSupport.CASES = HuamiSupport.MUTABILITY;
+                }else if (selectedState.equals("ONE SECOND")){
+                    HuamiSupport.CASES = HuamiSupport.ONE_SECOND;
+                }else if(selectedState.equals("FIVE SECOND")){
+                    HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
+                }
+            }
+        });
 
         Button vibrate_test = findViewById(R.id.vibrationButton);
         vibrate_test.setOnClickListener(new View.OnClickListener() {
@@ -301,6 +350,7 @@ public class DebugActivity extends AbstractGBActivity {
                 }
             });
         }
+
         Button sendEmail = findViewById(R.id.sendEmail);
         sendEmail.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -319,312 +369,11 @@ public class DebugActivity extends AbstractGBActivity {
         dataTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                String userID = "test";
-//                String userPassword = "test";
-//                String userGender = "test";
-//                String userEmail = "test";
-//
-//                Response.Listener<String> responseListener = new Response.Listener<String>() {
-//                    @Override
-//                    public void onResponse(String response) {
-//                        try{
-//                            JSONObject jsonResponse = new JSONObject(response);
-//                            boolean success = jsonResponse.getBoolean("success");
-//                            if(success){
-//                                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(DebugActivity.this);
-//                                dialog = builder.setMessage("성공")
-//                                        .setPositiveButton("확인",null)
-//                                        .create();
-//                                dialog.show();
-//                                return;
-//                            }
-//                            else{
-//
-//                                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(DebugActivity.this);
-//                                dialog = builder.setMessage("실패")
-//                                        .setNegativeButton("확인",null)
-//                                        .create();
-//                                dialog.show();
-//                            }
-//                        }
-//                        catch (Exception e){
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                };
-//                RegisterRequest registerRequest = new RegisterRequest(userID, userPassword, userGender, userEmail, responseListener);
-//                RequestQueue queue = Volley.newRequestQueue(DebugActivity.this);
-//                queue.add(registerRequest);
                 InsertDB insertDB = new InsertDB(DebugActivity.this);
                 insertDB.insertData("1", "1", "1", "1");
             }
         });
-//
-//        Button incomingCallButton = findViewById(R.id.incomingCallButton);
-//        incomingCallButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                CallSpec callSpec = new CallSpec();
-//                callSpec.command = CallSpec.CALL_INCOMING;
-//                callSpec.number = editContent.getText().toString();
-//                GBApplication.deviceService().onSetCallState(callSpec);
-//
-//            }
-//        });
-//        realtimeHR.addte
-//        }
 
-
-//        Button outgoingCallButton = findViewById(R.id.outgoingCallButton);
-//        outgoingCallButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                CallSpec callSpec = new CallSpec();
-//                callSpec.command = CallSpec.CALL_OUTGOING;
-//                callSpec.number = editContent.getText().toString();
-//                GBApplication.deviceService().onSetCallState(callSpec);
-//            }
-//        });
-//
-//        Button startCallButton = findViewById(R.id.startCallButton);
-//        startCallButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                CallSpec callSpec = new CallSpec();
-//                callSpec.command = CallSpec.CALL_START;
-//                GBApplication.deviceService().onSetCallState(callSpec);
-//            }
-//        });
-//        Button endCallButton = findViewById(R.id.endCallButton);
-//        endCallButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                CallSpec callSpec = new CallSpec();
-//                callSpec.command = CallSpec.CALL_END;
-//                GBApplication.deviceService().onSetCallState(callSpec);
-//            }
-//        });
-//
-//        Button rebootButton = findViewById(R.id.rebootButton);
-//        rebootButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                GBApplication.deviceService().onReset(GBDeviceProtocol.RESET_FLAGS_REBOOT);
-//            }
-//        });
-//
-//        Button factoryResetButton = findViewById(R.id.factoryResetButton);
-//        factoryResetButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                new AlertDialog.Builder(DebugActivity.this)
-//                        .setCancelable(true)
-//                        .setTitle(R.string.debugactivity_really_factoryreset_title)
-//                        .setMessage(R.string.debugactivity_really_factoryreset)
-//                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                GBApplication.deviceService().onReset(GBDeviceProtocol.RESET_FLAGS_FACTORY_RESET);
-//                            }
-//                        })
-//                        .setNegativeButton(R.string.Cancel, new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                            }
-//                        })
-//                        .show();
-//            }
-//        });
-//
-//        Button heartRateButton = findViewById(R.id.HeartRateButton);
-//        heartRateButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                GB.toast("Measuring heart rate, please wait...", Toast.LENGTH_LONG, GB.INFO);
-//                GBApplication.deviceService().onHeartRateTest();
-////                new AmazfitGTS2MiniSupport().onEnableRealtimeHeartRateMeasurement(true);
-//            }
-//        });
-//
-//        Button setFetchTimeButton = findViewById(R.id.SetFetchTimeButton);
-//        setFetchTimeButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//
-//                final Calendar currentDate = Calendar.getInstance();
-//                Context context = getApplicationContext();
-//
-//                if (context instanceof GBApplication) {
-//                    GBApplication gbApp = (GBApplication) context;
-//                    final GBDevice device = gbApp.getDeviceManager().getSelectedDevice();
-//                    if (device != null) {
-//                        new DatePickerDialog(DebugActivity.this, new DatePickerDialog.OnDateSetListener() {
-//                            @Override
-//                            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-//                                Calendar date = Calendar.getInstance();
-//                                date.set(year, monthOfYear, dayOfMonth);
-//
-//                                long timestamp = date.getTimeInMillis() - 1000;
-//                                GB.toast("Setting lastSyncTimeMillis: " + timestamp, Toast.LENGTH_LONG, GB.INFO);
-//
-//                                SharedPreferences.Editor editor = GBApplication.getDeviceSpecificSharedPrefs(device.getAddress()).edit();
-//                                editor.remove("lastSyncTimeMillis"); //FIXME: key reconstruction is BAD
-//                                editor.putLong("lastSyncTimeMillis", timestamp);
-//                                editor.apply();
-//                            }
-//                        }, currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH), currentDate.get(Calendar.DATE)).show();
-//                    } else {
-//                        GB.toast("Device not selected/connected", Toast.LENGTH_LONG, GB.INFO);
-//                    }
-//                }
-//
-//
-//            }
-//        });
-
-
-//        Button setMusicInfoButton = findViewById(R.id.setMusicInfoButton);
-//        setMusicInfoButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                MusicSpec musicSpec = new MusicSpec();
-//                String testString = editContent.getText().toString();
-//                musicSpec.artist = testString + "(artist)";
-//                musicSpec.album = testString + "(album)";
-//                musicSpec.track = testString + "(track)";
-//                musicSpec.duration = 10;
-//                musicSpec.trackCount = 5;
-//                musicSpec.trackNr = 2;
-//
-//                GBApplication.deviceService().onSetMusicInfo(musicSpec);
-//
-//                MusicStateSpec stateSpec = new MusicStateSpec();
-//                stateSpec.position = 0;
-//                stateSpec.state = 0x01; // playing
-//                stateSpec.playRate = 100;
-//                stateSpec.repeat = 1;
-//                stateSpec.shuffle = 1;
-//
-//                GBApplication.deviceService().onSetMusicState(stateSpec);
-//            }
-//        });
-//
-//
-        // vibration test
-//        Button vibration = findViewById(R.id.vibration);
-//        vibration.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                //                vibration_timer(3,3);
-//            }
-//        });
-
-
-//        vibration.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-////                test();
-//                NotificationSpec spec = new NotificationSpec();
-////                spec.type = new NotificationType(1, (byte)0x01 );
-//                GBApplication.deviceService().onNotification(spec);
-//            }
-//        });
-//
-//
-//        Button setTimeButton = findViewById(R.id.setTimeButton);
-//        setTimeButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                GBApplication.deviceService().onSetTime();
-//            }
-//        });
-//
-//        Button testNotificationButton = findViewById(R.id.testNotificationButton);
-//        testNotificationButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                testNotification();
-//            }
-//        });
-//
-//        Button testPebbleKitNotificationButton = findViewById(R.id.testPebbleKitNotificationButton);
-//        testPebbleKitNotificationButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                testPebbleKitNotification();
-//            }
-//        });
-//
-//        Button fetchDebugLogsButton = findViewById(R.id.fetchDebugLogsButton);
-//        fetchDebugLogsButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                GBApplication.deviceService().onFetchRecordedData(RecordedDataTypes.TYPE_DEBUGLOGS);
-//            }
-//        });
-//
-        Button testNewFunctionalityButton = findViewById(R.id.testNewFunctionality);
-        testNewFunctionalityButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                testNewFunctionality();
-            }
-        });
-//
-//        Button shareLogButton = findViewById(R.id.shareLog);
-//        shareLogButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                showWarning();
-//            }
-//        });
-//
-//        Button showWidgetsButton = findViewById(R.id.showWidgetsButton);
-//        showWidgetsButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                showAllRegisteredAppWidgets();
-//            }
-//        });
-
-//        Button unregisterWidgetsButton = findViewById(R.id.deleteWidgets);
-//        unregisterWidgetsButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                unregisterAllRegisteredAppWidgets();
-//            }
-//        });
-//
-//        Button showWidgetsPrefsButton = findViewById(R.id.showWidgetsPrefs);
-//        showWidgetsPrefsButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                showAppWidgetsPrefs();
-//            }
-//        });
-//
-//        Button deleteWidgetsPrefsButton = findViewById(R.id.deleteWidgetsPrefs);
-//        deleteWidgetsPrefsButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                deleteWidgetsPrefs();
-//            }
-//        });
-
-//        CheckBox activity_list_debug_extra_time_range = findViewById(R.id.activity_list_debug_extra_time_range);
-//        activity_list_debug_extra_time_range.setAllCaps(true);
-//        boolean activity_list_debug_extra_time_range_value = GBApplication.getPrefs().getPreferences().getBoolean("activity_list_debug_extra_time_range", false);
-//        activity_list_debug_extra_time_range.setChecked(activity_list_debug_extra_time_range_value);
-//
-//        activity_list_debug_extra_time_range.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//            @Override
-//            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-//                GBApplication.getPrefs().getPreferences().getBoolean("activity_list_debug_extra_time_range", false);
-//                SharedPreferences.Editor editor = GBApplication.getPrefs().getPreferences().edit();
-//                editor.putBoolean("activity_list_debug_extra_time_range", b).apply();
-//            }
-//        });
-//
     }
 
     private void deleteWidgetsPrefs() {

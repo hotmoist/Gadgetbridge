@@ -223,7 +223,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     private volatile boolean isReadingSensorData;
 
     public static int HEART_RATE = -1;
-    public static int STEP_TIMER = -10;
+//    public static int STEP_TIMER = -10;
     public static int STEP = -1;
 
 
@@ -1890,8 +1890,15 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             realtimeSamplesSupport = new RealtimeSamplesSupport(1000, 1000) {
                 @Override
                 public void doCurrentSample() {
-                    // added for realtime heart rate measure
                     if (!HuamiSupport.super.isConnected()) {
+                        // if disconnected -> notify for connection and exit the program for resource
+                        WEAR_NOTIFY_TIMER = 60;
+                        try {
+                            Thread.sleep(100);
+                            WEAR_NOTIFY_TIMER = 1;
+
+                        } catch (InterruptedException e) {
+                        }
                         System.exit(0);
                     }
                     try {
@@ -1950,7 +1957,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                         /*-------------------------------------*/
 
                         STEP = sample.getSteps();
-                        if (STEP < 0){
+                        if (STEP < 0) {
                             STEP = 0;
                         }
 
@@ -1987,18 +1994,19 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     }
 
     ////////////////////////////////////////-->캐이스 3가지 알고리즘
-    final int NONE = -1;
-    final int MUTABILITY = 0;
-    final int ONE_SECOND = 1;
-    final int FIVE_SECOND = 2;
+    public final static int NONE = -1;
+    public final static int MUTABILITY = 0;
+    public final static int ONE_SECOND = 1;
+    public final static int FIVE_SECOND = 2;
 
-    int cases = MUTABILITY;
+    public static int CASES = NONE;
 
     int b_step = 0;                         // restore total step for DB
-    int inTimeStep = 0;
+    public static int IN_TIME_STEP = 0;
     public static boolean IS_NOTIFY = false;        // if true call message else if false nothing 알람창
-    int stepTimer = -10;
-    int resetTime = 60;                  //타이머 주기 초단위 -->ex) 60이면 60초
+    public static int STEP_TIMER = -1;
+    int resetTime = 2400;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
+//    int resetTime = 40;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
     final Timer timer = new Timer();
     TimerTask Task = new TimerTask() {
         @Override
@@ -2011,10 +2019,11 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             InsertDB insert = new InsertDB(getContext());
             insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "");
 //            LOG.debug("insert Debug : "+ stepTimer+""+HuamiSupport.HEART_RATE+""+HuamiSupport.TOTAL_STEP+""+(HuamiSupport.TOTAL_STEP - beforeStep)+"");
-            LOG.debug("check Activity >> step timer: " + stepTimer + ", heart rate: " + HuamiSupport.HEART_RATE + ", total step:" + HuamiSupport.TOTAL_STEP + ", step: " + inTimeStep + ", wear notify timer: " + WEAR_NOTIFY_TIMER);
+            LOG.debug("check Activity >> step timer: " + STEP_TIMER + ", heart rate: " + HuamiSupport.HEART_RATE + ", total step:" + HuamiSupport.TOTAL_STEP + ", step: " + IN_TIME_STEP + ", wear notify timer: " + WEAR_NOTIFY_TIMER);
+            LOG.debug("check Activity >> current case: " + CASES);
 
             b_step = HuamiSupport.TOTAL_STEP;
-            switch (cases) {           //실험 대상군 설정
+            switch (CASES) {           //실험 대상군 설정
                 case MUTABILITY:
 
                     checkActivity(1, 1, MUTABILITY);
@@ -2082,11 +2091,11 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     void checkActivity(int period, int time, int casenum) {     //주기별 task설정
 
         if (HuamiSupport.HEART_RATE > 0) {
-            if (stepTimer == 0 && !initial) {
+            if (STEP_TIMER == 0 && !initial) {
                 // base 설정
                 // inTimeStep이 10회 미만인 경우
                 // 가장 초기엔 현재 측정된 step을 설정한다.
-                if (inTimeStep > -1 && inTimeStep < 10) {
+                if (IN_TIME_STEP > -1 && IN_TIME_STEP < 10) {
                     // 한 주기 동안 10회 미만의 step인 경우 -> notify 실시
                     // TODO : notify for exercise implement needed
                     if (casenum == MUTABILITY) {
@@ -2095,42 +2104,42 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                     IS_NOTIFY = true;
                     vibration_timer(1, 1, casenum);
                 }
-                inTimeStep = HuamiSupport.STEP;
+                IN_TIME_STEP = HuamiSupport.STEP;
             }
 
-            if (stepTimer == 0){
+            if (STEP_TIMER == 0) {
                 // step timer 이 수행하기 시작하므로 false로 지정
                 WEAR_NOTIFY_TIMER = 1;
                 initial = false;
             }
-            if(stepTimer > 0) {
+            if (STEP_TIMER > 0) {
                 // 주기 내 step 수들을 저장
-                inTimeStep += HuamiSupport.STEP;
+                IN_TIME_STEP += HuamiSupport.STEP;
             }
-            stepTimer++;
+            STEP_TIMER++;
 
             // case : MUTABILITY
             if (casenum == MUTABILITY) {
-                if (stepTimer <= 20 && inTimeStep >= 10) {
+                if (STEP_TIMER <= 20 && IN_TIME_STEP >= 10) {
                     // 20초 이내 step이 10번 이상 이루어진 경우
                     // TODO : Notification destroy and vibration cancel
                     DESTROY_NOTIFICATION = true;
                     WATCH_VIB_SET = false;
                 }
-                if (stepTimer > 20){
+                if (STEP_TIMER > 20) {
                     // 20초 초과 후 진동을 멈춤
                     WATCH_VIB_SET = false;
                 }
             }
-            if (stepTimer >= resetTime){
+            if (STEP_TIMER >= resetTime) {
                 // 주기 리셋
-                stepTimer = 0;
+                STEP_TIMER = 0;
             }
         } else {
             // set timer to 0 constantly
             // TODO : notify to user "wear device"
             WEAR_NOTIFY_TIMER += 1;
-            stepTimer = -1;
+            STEP_TIMER = -1;
             initial = true;
         }
     }
