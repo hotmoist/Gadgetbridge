@@ -2008,6 +2008,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     int resetTime = 2400;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
 //    int resetTime = 40;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
     final Timer timer = new Timer();
+    InsertDB insert = new InsertDB(getContext());
     TimerTask Task = new TimerTask() {
         @Override
         public void run() {
@@ -2016,7 +2017,6 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
             String getTime = dateFormat.format(date);
 
-            InsertDB insert = new InsertDB(getContext());
             insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "");
 //            LOG.debug("insert Debug : "+ stepTimer+""+HuamiSupport.HEART_RATE+""+HuamiSupport.TOTAL_STEP+""+(HuamiSupport.TOTAL_STEP - beforeStep)+"");
             LOG.debug("check Activity >> step timer: " + STEP_TIMER + ", heart rate: " + HuamiSupport.HEART_RATE + ", total step:" + HuamiSupport.TOTAL_STEP + ", step: " + IN_TIME_STEP + ", wear notify timer: " + WEAR_NOTIFY_TIMER);
