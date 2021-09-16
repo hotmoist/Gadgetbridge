@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RegisterRequest extends StringRequest {
-    final static private String URL= "https://ljy897.cafe24.com/UserRegister.php";
+    final static private String URL= "https://ljy897.cafe24.com/UserRegister1.php";
     private Map<String,String> parameters;
 
     public RegisterRequest(String time, String heartrate, String totalstep, String realtimestep, Response.Listener<String> listener) {
