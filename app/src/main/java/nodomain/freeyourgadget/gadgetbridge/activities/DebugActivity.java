@@ -53,7 +53,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Objects;
 
 import nodomain.freeyourgadget.gadgetbridge.GBApplication;
@@ -177,6 +179,11 @@ public class DebugActivity extends AbstractGBActivity {
     TextView timePeriod;
     TextView inTimeStep;
     TextView currentCase;
+    EditText startHour;
+    EditText startmiunite;
+    EditText endHour;
+    EditText endmiunite;
+    Button setVibrationTime;
 
     Handler mHandler;
     private final String DEFAULT = "DEFAULT";
@@ -220,7 +227,6 @@ public class DebugActivity extends AbstractGBActivity {
         }
     }
 
-
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -254,6 +260,60 @@ public class DebugActivity extends AbstractGBActivity {
         timePeriod = (TextView) findViewById(R.id.timePeriod);
         inTimeStep = (TextView) findViewById(R.id.inTimeStep);
         currentCase = (TextView) findViewById(R.id.currentCase);
+
+        startHour= findViewById(R.id.startHour);
+        startmiunite= findViewById(R.id.startMiunite);
+        endHour= findViewById(R.id.endHour);
+        endmiunite= findViewById(R.id.endMiunite);
+        setVibrationTime = findViewById(R.id.setVibrationTime);
+
+        setVibrationTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String startTime =null;
+                String endTime =null;
+
+                String newStartHour = startHour.getText().toString();
+                String newStartMiunite = startmiunite.getText().toString();
+                String newEndHour = endHour.getText().toString();
+                String newEndMiunite = endmiunite.getText().toString();
+
+
+                if(
+                        (!newStartHour.equals("")  && !newStartMiunite.equals(""))&&(newStartHour.length()<3&&newStartMiunite.length()<3 && Integer.parseInt(newStartHour)<24 && Integer.parseInt(newStartMiunite)<60)
+                        &&(!newEndHour.equals("")  && !newEndMiunite.equals(""))&&(newEndHour.length()<3&&newEndMiunite.length()<3 && Integer.parseInt(newEndHour)<24 && Integer.parseInt(newEndMiunite)<60)
+                        &&(Integer.parseInt(newEndHour)>Integer.parseInt(newStartHour))
+                ) {
+                    if(startHour.getText().length()==1){
+                        newStartHour = '0'+startHour.getText().toString();
+                    }
+                    if(startmiunite.getText().length()==1){
+                        newStartMiunite = '0'+startmiunite.getText().toString();
+                    }
+                    startTime = newStartHour+newStartMiunite+"00";
+
+                    if(endHour.getText().length()==1){
+                        newEndHour = '0'+endHour.getText().toString();
+                    }
+                    if(endmiunite.getText().length()==1){
+                        newEndMiunite = '0'+endmiunite.getText().toString();
+                    }
+                    endTime = newEndHour+newEndMiunite+"00";
+
+                    GB.toast(newStartHour+"시"+newStartMiunite+"분 부터"+
+                                    newEndHour+"시"+newEndMiunite+"분 까지로 설정되었습니다."
+
+                            , Toast.LENGTH_SHORT, GB.INFO);
+                    HuamiSupport.SET_START_TIME = Integer.parseInt(startTime);
+                    HuamiSupport.SET_END_TIME = Integer.parseInt(endTime);
+                }
+                else{
+                    GB.toast("다시 입력하세요.", Toast.LENGTH_SHORT, GB.INFO);
+                }
+            }
+        });
+
+
         new TimeThread().start();
 
         Button caseSetButton = findViewById(R.id.setLabCase);

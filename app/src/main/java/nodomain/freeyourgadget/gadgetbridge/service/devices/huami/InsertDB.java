@@ -49,9 +49,12 @@ public class InsertDB {
                 }
             }
         };
+        try {
+            RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, responseListener);
+            RequestQueue queue = Volley.newRequestQueue(context);
+            queue.add(registerRequest);
+        }catch (Exception e){
 
-        RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, responseListener);
-        RequestQueue queue = Volley.newRequestQueue(context);
-        queue.add(registerRequest);
+        }
     }
 }

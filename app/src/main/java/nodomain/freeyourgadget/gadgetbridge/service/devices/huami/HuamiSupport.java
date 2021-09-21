@@ -2005,40 +2005,51 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     public static int IN_TIME_STEP = 0;
     public static boolean IS_NOTIFY = false;        // if true call message else if false nothing 알람창
     public static int STEP_TIMER = -1;
+
+    public static int SET_START_TIME=0;
+    public static int SET_END_TIME=0;
+
+    public static
     int resetTime = 2400;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
 //    int resetTime = 40;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
+    InsertDB insert;
     final Timer timer = new Timer();
-    InsertDB insert = new InsertDB(getContext());
     TimerTask Task = new TimerTask() {
         @Override
         public void run() {
             long now = System.currentTimeMillis();
             Date date = new Date(now);
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
             String getTime = dateFormat.format(date);
+            int time=Integer.parseInt(getTime.substring(11,13)+getTime.substring(14,16)+getTime.substring(17));
 
-            insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "");
-//            LOG.debug("insert Debug : "+ stepTimer+""+HuamiSupport.HEART_RATE+""+HuamiSupport.TOTAL_STEP+""+(HuamiSupport.TOTAL_STEP - beforeStep)+"");
-            LOG.debug("check Activity >> step timer: " + STEP_TIMER + ", heart rate: " + HuamiSupport.HEART_RATE + ", total step:" + HuamiSupport.TOTAL_STEP + ", step: " + IN_TIME_STEP + ", wear notify timer: " + WEAR_NOTIFY_TIMER);
-            LOG.debug("check Activity >> current case: " + CASES);
+            if(SET_START_TIME<=time && SET_END_TIME>=time ||(SET_END_TIME==0&&SET_START_TIME==0)) {
+                insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "");
+                //            LOG.debug("insert Debug : "+ stepTimer+""+HuamiSupport.HEART_RATE+""+HuamiSupport.TOTAL_STEP+""+(HuamiSupport.TOTAL_STEP - beforeStep)+"");
+                LOG.debug("check Activity >> step timer: " + STEP_TIMER + ", heart rate: " + HuamiSupport.HEART_RATE + ", total step:" + HuamiSupport.TOTAL_STEP + ", step: " + IN_TIME_STEP + ", wear notify timer: " + WEAR_NOTIFY_TIMER);
+                LOG.debug("check Activity >> current case: " + CASES);
 
-            b_step = HuamiSupport.TOTAL_STEP;
-            switch (CASES) {           //실험 대상군 설정
-                case MUTABILITY:
+                b_step = HuamiSupport.TOTAL_STEP;
+                switch (CASES) {           //실험 대상군 설정
+                    case MUTABILITY:
 
-                    checkActivity(1, 1, MUTABILITY);
-                    break;
+                        checkActivity(1, 1, MUTABILITY);
+                        break;
 
-                case ONE_SECOND:
-                    checkActivity(1, 1, ONE_SECOND);                  //진동 한번만 울리는 케이스
-                    break;
-                case FIVE_SECOND:
-                    checkActivity(1, 1, FIVE_SECOND);                  //진동 다섯번 울리는 케이스
-                    break;
+                    case ONE_SECOND:
+                        checkActivity(1, 1, ONE_SECOND);                  //진동 한번만 울리는 케이스
+                        break;
+                    case FIVE_SECOND:
+                        checkActivity(1, 1, FIVE_SECOND);                  //진동 다섯번 울리는 케이스
+                        break;
+                }
             }
         }
     };
 
+    public void makeDB(){
+        insert =  new InsertDB(getContext());
+    }
 
     private void vibration_timer(int period, final int time, int casenum) {
         final Timer timer = new Timer();
@@ -3322,6 +3333,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
         onEnableRealtimeHeartRateMeasurement(true);
         onEnableRealtimeSteps(true);
 //        onEnableGetSensorData(true);
+        makeDB();
         timer.schedule(Task, 0, 1000);
 
     }

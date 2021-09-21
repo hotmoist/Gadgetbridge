@@ -22,7 +22,7 @@
             android:paddingRight="@dimen/activity_horizontal_margin"
             android:paddingBottom="@dimen/activity_vertical_margin"
             grid:alignmentMode="alignMargins"
-            grid:columnCount="2">
+            grid:columnCount="4">
 
             <TextView
                 android:id="@+id/textView"
@@ -30,7 +30,7 @@
                 android:layout_height="wrap_content"
                 android:text="Real time HR measurement"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                grid:layout_columnSpan="2"
+                grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
 
             <EditText
@@ -40,7 +40,7 @@
                 android:ems="10"
                 android:inputType="textMultiLine"
                 android:text="Test"
-                grid:layout_columnSpan="2"
+                grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
 
             <Spinner
@@ -48,7 +48,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="send as SMS"
-                grid:layout_columnSpan="2"
+                grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
 
             <Spinner
@@ -56,15 +56,78 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="set Lab Case"
-                grid:layout_columnSpan="2"
+                grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
-
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="시작시간"
+                grid:layout_columnSpan="4"
+                />
+            <EditText
+                android:id="@+id/startHour"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="0~23"
+                grid:layout_columnSpan="1"
+                grid:layout_gravity="fill_horizontal" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="시"
+                grid:layout_columnSpan="1"
+                />
+            <EditText
+                android:id="@+id/startMiunite"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="0~59"
+                grid:layout_columnSpan="1"
+                grid:layout_gravity="fill_horizontal" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="분"
+                grid:layout_columnSpan="1"
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="종료시간"
+                grid:layout_columnSpan="4"
+                />
+            <EditText
+                android:id="@+id/endHour"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="0~23"
+                grid:layout_columnSpan="1"
+                grid:layout_gravity="fill_horizontal" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="시"
+                grid:layout_columnSpan="1"
+                />
+            <EditText
+                android:id="@+id/endMiunite"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="0~59"
+                grid:layout_columnSpan="1"
+                grid:layout_gravity="fill_horizontal" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="분"
+                grid:layout_columnSpan="1"
+                />
             <TextView
                 android:id="@+id/currentCase"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAlignment="center"
-                grid:layout_columnSpan="2"
+                grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal"
                 android:text="Current case: NONE"
                 android:textSize="75px"
@@ -76,7 +139,7 @@
                 android:text="00 bpm"
                 android:textAlignment="center"
                 android:textSize="100px"
-                grid:layout_columnSpan="2"
+                grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
 
             <TextView
@@ -86,7 +149,7 @@
                 android:text="steps:0"
                 android:textAlignment="center"
                 android:textSize="100px"
-                grid:layout_columnSpan="2"
+                grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
 
             <TextView
@@ -96,7 +159,7 @@
                 android:text="경과 시간: 0"
                 android:textAlignment="center"
                 android:textSize="100px"
-                grid:layout_columnSpan="2"
+                grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
 
             <TextView
@@ -106,7 +169,7 @@
                 android:text="주기 내 STEP: 0"
                 android:textAlignment="center"
                 android:textSize="100px"
-                grid:layout_columnSpan="2"
+                grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
 
 
@@ -115,7 +178,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="set Case"
-                grid:layout_columnSpan="2"
+                grid:layout_columnSpan="4"
+                grid:layout_gravity="fill_horizontal" />
+
+            <Button
+                android:id="@+id/setVibrationTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="set Vibration Time"
+                grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
 
             <Button
@@ -123,7 +194,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="vibration test"
-                grid:layout_columnSpan="2"
+                grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
 
             <Button
@@ -131,7 +202,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Send"
-                grid:layout_columnSpan="2"
+                grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
 
             <Button
@@ -139,7 +210,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Sensor"
-                grid:layout_columnSpan="2"
+                grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
 
             <Button
@@ -147,7 +218,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="test Mutable"
-                grid:layout_columnSpan="2"
+                grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
 
             <Button
@@ -155,7 +226,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="send email"
-                grid:layout_columnSpan="2"
+                grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
 
             <!--            <Button-->
@@ -256,7 +327,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="send DataBase"
-                grid:layout_columnSpan="2"
+                grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
             <!--            <Button-->
             <!--                android:id="@+id/testNewFunctionality"-->
