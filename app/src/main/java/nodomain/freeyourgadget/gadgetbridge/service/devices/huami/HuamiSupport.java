@@ -2008,6 +2008,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
 
     public static int SET_START_TIME=0;
     public static int SET_END_TIME=0;
+    int CURRENT_TIME =0;
 
     public static
     int resetTime = 2400;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
@@ -2021,10 +2022,13 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             Date date = new Date(now);
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
             String getTime = dateFormat.format(date);
-            int time=Integer.parseInt(getTime.substring(11,13)+getTime.substring(14,16)+getTime.substring(17));
+            CURRENT_TIME =Integer.parseInt(getTime.substring(11,13)+getTime.substring(14,16)+getTime.substring(17));
 
-            if(SET_START_TIME<=time && SET_END_TIME>=time ||(SET_END_TIME==0&&SET_START_TIME==0)) {
-                insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "");
+            if(SET_START_TIME<= CURRENT_TIME && SET_END_TIME>= CURRENT_TIME ||(SET_END_TIME==0&&SET_START_TIME==0)) {
+                LOG.debug( "현재시간  : "+ CURRENT_TIME+"    "+(CURRENT_TIME%360)+" 10분주기");
+//                if(CURRENT_TIME%360==0||CURRENT_TIME==0) {
+                    insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "");
+//                }
                 //            LOG.debug("insert Debug : "+ stepTimer+""+HuamiSupport.HEART_RATE+""+HuamiSupport.TOTAL_STEP+""+(HuamiSupport.TOTAL_STEP - beforeStep)+"");
                 LOG.debug("check Activity >> step timer: " + STEP_TIMER + ", heart rate: " + HuamiSupport.HEART_RATE + ", total step:" + HuamiSupport.TOTAL_STEP + ", step: " + IN_TIME_STEP + ", wear notify timer: " + WEAR_NOTIFY_TIMER);
                 LOG.debug("check Activity >> current case: " + CASES);
