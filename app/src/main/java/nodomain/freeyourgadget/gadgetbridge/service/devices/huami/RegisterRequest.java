@@ -10,6 +10,7 @@ public class RegisterRequest extends StringRequest {
     final static private String URL= "https://ljy897.cafe24.com/UserRegister1.php";
     private Map<String,String> parameters;
 
+
     public RegisterRequest(String time, String heartrate, String totalstep, String realtimestep, Response.Listener<String> listener) {
         super(Method.POST, URL, listener, null);
         parameters = new HashMap<>();
@@ -18,7 +19,6 @@ public class RegisterRequest extends StringRequest {
         parameters.put("totalstep",totalstep);
         parameters.put("realtimestep",realtimestep);
     }
-
     @Override
     public Map<String, String> getParams(){
         return parameters;

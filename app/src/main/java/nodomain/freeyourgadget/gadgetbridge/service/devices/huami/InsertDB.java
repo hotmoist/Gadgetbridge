@@ -1,12 +1,16 @@
 package nodomain.freeyourgadget.gadgetbridge.service.devices.huami;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONObject;
+
+import java.net.URI;
+import java.util.Calendar;
 
 public class InsertDB {
     private androidx.appcompat.app.AlertDialog dialog;
@@ -24,6 +28,7 @@ public class InsertDB {
         this.realtimestep = realtimestep;
         this.context = context;
     }
+
     InsertDB(Context context) {
         this.context=context;
     }
@@ -49,9 +54,26 @@ public class InsertDB {
                 }
             }
         };
+        try {
 
-        RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, responseListener);
-        RequestQueue queue = Volley.newRequestQueue(context);
-        queue.add(registerRequest);
+
+            RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, responseListener);
+            registerRequest.setShouldCache(false);
+            RequestQueue queue = Volley.newRequestQueue(context);
+            queue.getCache().invalidate("https://ljy897.cafe24.com/UserRegister1.php",true);
+            queue.add(registerRequest);
+            queue.stop();
+        }catch (Exception e){
+
+        }
     }
+
+    public static long getMinutesDifference(long timeStart,long timeStop){
+        long diff = timeStop - timeStart;
+        long diffMinutes = diff / (60 * 1000);
+
+        return  diffMinutes;
+    }
+
+
 }
