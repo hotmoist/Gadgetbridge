@@ -66,7 +66,7 @@ public class InsertDB {
             queue.add(registerRequest);
             queue.getCache().invalidate("https://ljy897.cafe24.com/UserRegister1.php",true);
             registerRequest.setShouldCache(false);
-            registerRequest.wait(1);
+            registerRequest.wait(100);
             registerRequest.cancel();
             queue.stop();
 
