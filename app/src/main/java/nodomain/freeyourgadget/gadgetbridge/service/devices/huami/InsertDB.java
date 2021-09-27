@@ -2,6 +2,7 @@ package nodomain.freeyourgadget.gadgetbridge.service.devices.huami;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -45,9 +46,12 @@ public class InsertDB {
                     JSONObject jsonResponse = new JSONObject(response);
                     boolean success = jsonResponse.getBoolean("success");
                     if (success) {
-//                                Toast.makeText(context, "성공",Toast.LENGTH_SHORT);
+                                Toast.makeText(context, "성공", Toast.LENGTH_SHORT);
 
                         return;
+                    }else{
+
+                        Toast.makeText(context, "실패", Toast.LENGTH_SHORT);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -57,23 +61,18 @@ public class InsertDB {
         try {
 
             RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, responseListener);
-            registerRequest.setShouldCache(false);
+//            registerRequest.setShouldCache(true);
             RequestQueue queue = Volley.newRequestQueue(context);
-            queue.getCache().invalidate("https://ljy897.cafe24.com/UserRegister1.php",true);
             queue.add(registerRequest);
+            queue.getCache().invalidate("https://ljy897.cafe24.com/UserRegister1.php",true);
+            registerRequest.setShouldCache(false);
+            registerRequest.wait(1);
             registerRequest.cancel();
             queue.stop();
 
         }catch (Exception e){
 
         }
-    }
-
-    public static long getMinutesDifference(long timeStart,long timeStop){
-        long diff = timeStop - timeStart;
-        long diffMinutes = diff / (60 * 1000);
-
-        return  diffMinutes;
     }
 
 

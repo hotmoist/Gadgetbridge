@@ -7,9 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RegisterRequest extends StringRequest {
-    static private String URL= "https://ljy897.cafe24.com/UserRegister1.php";
+    final static private String URL= "https://ljy897.cafe24.com/UserRegister1.php";
     private Map<String,String> parameters;
-    private Map<String,String> oldParameters;
 
 
     public RegisterRequest(String time, String heartrate, String totalstep, String realtimestep, Response.Listener<String> listener) {
@@ -20,10 +19,9 @@ public class RegisterRequest extends StringRequest {
         parameters.put("totalstep",totalstep);
         parameters.put("realtimestep",realtimestep);
     }
+
     @Override
     public Map<String, String> getParams(){
-        oldParameters=parameters;
-        parameters.clear();
-        return oldParameters;
+        return parameters;
     }
 }
