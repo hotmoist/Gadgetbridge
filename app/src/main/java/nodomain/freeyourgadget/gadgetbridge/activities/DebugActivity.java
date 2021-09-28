@@ -150,7 +150,7 @@ public class DebugActivity extends AbstractGBActivity {
             switch (msg.what) {
                 case 1:
                     HRvalText.setText("Heart rate: " + HuamiSupport.HEART_RATE + "bpm");
-                    StepText.setText("Steps:" + HuamiSupport.TOTAL_STEP);
+                    StepText.setText("하루 총 스텝:" + HuamiSupport.TOTAL_STEP);
                     timePeriod.setText("경과 시간: " + (int)(HuamiSupport.STEP_TIMER/60) + ":" +(HuamiSupport.STEP_TIMER)%60);
                     inTimeStep.setText("주기 내 STEP: " + HuamiSupport.IN_TIME_STEP);
                     if (HuamiSupport.CASES == HuamiSupport.NONE){
@@ -233,15 +233,6 @@ public class DebugActivity extends AbstractGBActivity {
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
         registerReceiver(mReceiver, filter); // for ACTION_REPLY
 
-//        editContent = findViewById(R.id.editContent);
-
-//        ArrayList<String> spinnerArray = new ArrayList<>();
-//        for (NotificationType notificationType : NotificationType.values()) {
-//            spinnerArray.add(notificationType.name());
-//        }
-//        ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, spinnerArray);
-//        sendTypeSpinner = findViewById(R.id.sendTypeSpinner);
-//        sendTypeSpinner.setAdapter(spinnerArrayAdapter);
 
         // Lab cases spinner add
         String[] cases = {"NONE", "MUTABILITY", "ONE SECOND", "FIVE SECOND"};
@@ -334,43 +325,7 @@ public class DebugActivity extends AbstractGBActivity {
             }
         });
 
-//        Button vibrate_test = findViewById(R.id.vibrationButton);
-//        vibrate_test.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                MiBandPreferencesActivity activity = new MiBandPreferencesActivity();
-//                NotificationSpec spec = new NotificationSpec();
-////                spec.type = new NotificationType(1, (byte)0x01 );
-//                spec.type = NotificationType.UNKNOWN;
-//                activity.tryVibration(spec.type);
-//            }
-//        });
 
-//        Button sendButton = findViewById(R.id.sendButton);
-//        sendButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                NotificationSpec notificationSpec = new NotificationSpec();
-//                String testString = editContent.getText().toString();
-//                notificationSpec.phoneNumber = testString;
-//                notificationSpec.body = testString;
-//                notificationSpec.sender = testString;
-//                notificationSpec.subject = testString;
-//                notificationSpec.type = NotificationType.values()[sendTypeSpinner.getSelectedItemPosition()];
-//                notificationSpec.pebbleColor = notificationSpec.type.color;
-//                GBApplication.deviceService().onNotification(notificationSpec);
-//            }
-//        });
-//
-//        Button testSensorButton = findViewById(R.id.sensorButton);
-//        {
-//            testSensorButton.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    testNewFunctionality();
-//                }
-//            });
-//        }
 
         final boolean[] flag = {false};
         mHandler = new Handler();
@@ -378,39 +333,6 @@ public class DebugActivity extends AbstractGBActivity {
 
         Intent intent = new Intent(this, ControlCenterv2.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
-//        Button testMutableButton = findViewById(R.id.testMutable);
-//        {
-//            testMutableButton.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    new Thread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            try {
-//                                mHandler.post(new Runnable() {
-//                                    @Override
-//                                    public void run() {
-//                                        createNotification(DEFAULT, 1259, "운동하세요", "어깨 돌리기 10회 이상 실시!", intent);
-//                                    }
-//                                });
-//
-//                                Thread.sleep(1000);
-//
-//                                while (true) {
-//                                    if (HuamiSupport.STEP >= 10) {
-//                                        destroyNotification(1259);
-//                                    }
-//                                    Thread.sleep(500);
-//                                }
-//                            } catch (InterruptedException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                    }).start();
-//                }
-//            });
-//        }
 
         Button sendEmail = findViewById(R.id.sendEmail);
         sendEmail.setOnClickListener(new View.OnClickListener() {
