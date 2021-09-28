@@ -246,6 +246,15 @@ public class ControlCenterv2 extends AppCompatActivity
             @Override
             public void run() {
                 while (true) {
+//                    if (HuamiSupport.CONNECTION == 1){
+//                        // 연결이 감지 된 경우 연결 notifi 삭제
+//                        destroyNotification(13009);
+//                    }
+
+                    if (HuamiSupport.HEART_RATE > 0 ){
+                        destroyNotification(13009);
+                    }
+
                     if (HuamiSupport.IS_NOTIFY) {
 //                        LOG.debug("check Activity >> notify on");
                         mHandler.post(new Runnable() {
@@ -257,7 +266,6 @@ public class ControlCenterv2 extends AppCompatActivity
                         });
                     } else if (HuamiSupport.WEAR_NOTIFY_TIMER % 60 == 0) {
                         // 60초 마다 워치 착용 여부 감지
-
                         LOG.debug("check Activity >> notify: " + HuamiSupport.WEAR_NOTIFY_TIMER);
                         mHandler.post(new Runnable() {
                             @Override

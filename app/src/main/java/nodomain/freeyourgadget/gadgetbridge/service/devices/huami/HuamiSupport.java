@@ -2154,6 +2154,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             // set timer to 0 constantly
             // TODO : notify to user "wear device"
             WEAR_NOTIFY_TIMER += 1;
+            IN_TIME_STEP = 0;
             STEP_TIMER = -1;
             initial = true;
         }
