@@ -41,6 +41,14 @@
                 grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
 
+            <Spinner
+                android:id="@+id/sendVibPeriod"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                grid:layout_columnSpan="4"
+                grid:layout_gravity="fill_horizontal" />
+
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -52,6 +60,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="0~23"
+                android:maxLength="2"
+                android:singleLine="true"
                 grid:layout_columnSpan="1"
                 grid:layout_gravity="fill_horizontal" />
 
@@ -66,6 +76,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="0~59"
+                android:maxLength="2"
+                android:singleLine="true"
                 grid:layout_columnSpan="1"
                 grid:layout_gravity="fill_horizontal" />
 
@@ -86,6 +98,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="0~23"
+                android:maxLength="2"
+                android:singleLine="true"
                 grid:layout_columnSpan="1"
                 grid:layout_gravity="fill_horizontal" />
 
@@ -100,6 +114,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="0~59"
+                android:maxLength="2"
+                android:singleLine="true"
                 grid:layout_columnSpan="1"
                 grid:layout_gravity="fill_horizontal" />
 
@@ -109,6 +125,27 @@
                 android:text="분"
                 grid:layout_columnSpan="1" />
 
+            <TextView
+                android:id="@+id/activationTimePeriod"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="설정 활동 시간: NONE"
+                android:textAlignment="center"
+                android:textSize="50px"
+                grid:layout_columnSpan="4"
+                grid:layout_gravity="fill_horizontal"
+                />
+
+            <TextView
+                android:id="@+id/vibrationTimePeriod"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="설정 주기 간격: NONE"
+                android:textAlignment="center"
+                android:textSize="50px"
+                grid:layout_columnSpan="4"
+                grid:layout_gravity="fill_horizontal"
+                />
             <TextView
                 android:id="@+id/currentCase"
                 android:layout_width="wrap_content"
@@ -172,9 +209,17 @@
                 android:id="@+id/setVibrationTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="set Vibration Time"
+                android:text="set Activation Time"
                 grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
+
+            <Button
+                android:id="@+id/setVibPeriod"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="set Period"
+                grid:layout_columnSpan="4"
+                grid:layout_gravity="fill_horizontal"/>
 
 
             <Button
