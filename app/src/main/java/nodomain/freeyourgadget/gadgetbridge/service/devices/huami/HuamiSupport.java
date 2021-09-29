@@ -1892,10 +1892,12 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                 public void doCurrentSample() {
                     if (!HuamiSupport.super.isConnected()) {
                         // if disconnected -> notify for connection and exit the program for resource
+                        HEART_RATE = 0;
                         WEAR_NOTIFY_TIMER = 60;
                         try {
                             Thread.sleep(100);
                             WEAR_NOTIFY_TIMER = 1;
+                            Thread.sleep(1000);
 
                         } catch (InterruptedException e) {
                         }
@@ -2002,16 +2004,15 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     public static int CASES = NONE;
 
     int b_step = 0;                         // restore total step for DB
-    public static int IN_TIME_STEP = 0;
+    public static int IN_TIME_STEP = 0;     // 주기 내의 step 수
     public static boolean IS_NOTIFY = false;        // if true call message else if false nothing 알람창
-    public static int STEP_TIMER = -1;
+    public static int STEP_TIMER = -1;      // step 시간 측정 타이머
 
     public static int SET_START_TIME=0;
     public static int SET_END_TIME=0;
     int CURRENT_TIME =0;
 
-    public static
-    int resetTime = 2400;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
+    public static int RESET_TIME = 2400;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
 //    int resetTime = 40;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
     InsertDB insert;
     final Timer timer = new Timer();
@@ -2047,6 +2048,11 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                         checkActivity(1, 1, FIVE_SECOND);                  //진동 다섯번 울리는 케이스
                         break;
                 }
+            }else {
+                STEP_TIMER = -1;
+                IN_TIME_STEP = 0;
+                WEAR_NOTIFY_TIMER = 1;
+                initial = true;
             }
         }
     };
@@ -2146,7 +2152,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                     WATCH_VIB_SET = false;
                 }
             }
-            if (STEP_TIMER >= resetTime) {
+            if (STEP_TIMER >= RESET_TIME) {
                 // 주기 리셋
                 STEP_TIMER = 0;
             }

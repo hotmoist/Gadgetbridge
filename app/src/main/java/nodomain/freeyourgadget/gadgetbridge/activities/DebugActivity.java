@@ -28,6 +28,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -75,10 +76,6 @@ public class DebugActivity extends AbstractGBActivity {
 
     private static final Logger LOG = LoggerFactory.getLogger(DebugActivity.class);
 
-
-    private androidx.appcompat.app.AlertDialog dialog;
-    private RealtimeSamplesSupport realtimeSamplesSupport;
-
     private static final String EXTRA_REPLY = "reply";
     private static final String ACTION_REPLY
             = "nodomain.freeyourgadget.gadgetbridge.DebugActivity.action.reply";
@@ -104,9 +101,8 @@ public class DebugActivity extends AbstractGBActivity {
     };
 
 
-//    private Spinner sendTypeSpinner;
     private Spinner sendCaseSpinner;
-//    private EditText editContent;
+    private Spinner sendVibPeriodSpinner;
 
     private void handleRealtimeSample(Serializable extra) {  // void -> int 형으로 변환
         if (extra instanceof ActivitySample) {
@@ -151,15 +147,17 @@ public class DebugActivity extends AbstractGBActivity {
                 case 1:
                     HRvalText.setText("Heart rate: " + HuamiSupport.HEART_RATE + "bpm");
                     StepText.setText("하루 총 스텝:" + HuamiSupport.TOTAL_STEP);
-                    timePeriod.setText("경과 시간: " + (int)(HuamiSupport.STEP_TIMER/60) + ":" +(HuamiSupport.STEP_TIMER)%60);
+                    timePeriod.setText("경과 시간: " + (int) (HuamiSupport.STEP_TIMER / 60) + ":" + (HuamiSupport.STEP_TIMER) % 60);
                     inTimeStep.setText("주기 내 STEP: " + HuamiSupport.IN_TIME_STEP);
-                    if (HuamiSupport.CASES == HuamiSupport.NONE){
-                        currentCase.setText("Current case: NONE" );
-                    } else if(HuamiSupport.CASES == HuamiSupport.MUTABILITY){
+                    activationTimePeriod.setText("설정 활동 시간: " + newStartHour +":" + newStartMiunite + " ~ " + newEndHour +":" + newEndMiunite);
+                    vibrationTimePeriod.setText("설정 주기 간격: " + (HuamiSupport.RESET_TIME/60));
+                    if (HuamiSupport.CASES == HuamiSupport.NONE) {
+                        currentCase.setText("Current case: NONE");
+                    } else if (HuamiSupport.CASES == HuamiSupport.MUTABILITY) {
                         currentCase.setText("Current case: Mutability");
-                    } else if(HuamiSupport.CASES == HuamiSupport.ONE_SECOND){
+                    } else if (HuamiSupport.CASES == HuamiSupport.ONE_SECOND) {
                         currentCase.setText("Current case: One Second");
-                    } else if(HuamiSupport.CASES == HuamiSupport.FIVE_SECOND){
+                    } else if (HuamiSupport.CASES == HuamiSupport.FIVE_SECOND) {
                         currentCase.setText("Current case: Five Second");
                     }
                     break;
@@ -173,11 +171,22 @@ public class DebugActivity extends AbstractGBActivity {
     TextView timePeriod;
     TextView inTimeStep;
     TextView currentCase;
+    TextView activationTimePeriod;
     EditText startHour;
     EditText startminute;
     EditText endHour;
     EditText endminute;
     Button setVibrationTime;
+
+    TextView vibrationTimePeriod;
+
+    // 활동 시간 관련
+    private boolean isSetVibrationTime;
+    String newStartHour;
+    String newStartMiunite;
+    String newEndHour;
+    String newEndMiunite;
+    private SharedPreferences appData;
 
     Handler mHandler;
     private final String DEFAULT = "DEFAULT";
@@ -200,8 +209,7 @@ public class DebugActivity extends AbstractGBActivity {
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
 //                .addAction(R.drawable.ic_launcher_foreground, getString(R.string.action_quit), pendingIntent)
-                .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE)
-                ;
+                .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE);
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notificationManager.notify(id, builder.build());
     }
@@ -211,14 +219,24 @@ public class DebugActivity extends AbstractGBActivity {
         notificationManager.cancel(id);
     }
 
-    class Lab{
-        String name = "";
-        int ival;
+    private void saveTime(){
+        SharedPreferences.Editor editor = appData.edit();
+        editor.putBoolean("SAVE_VIB_TIME", true);
 
-        Lab(String caseName, int val ){
-            name = caseName;
-            ival = val;
-        }
+        editor.putString("newStartHour", startHour.getText().toString().trim());
+        editor.putString("newStartMinute", startminute.getText().toString().trim());
+        editor.putString("newEndHour", endHour.getText().toString().trim());
+        editor.putString("newEndMinute", endminute.getText().toString().trim());
+
+        editor.apply();
+    }
+
+    private void loadTime(){
+        isSetVibrationTime = appData.getBoolean("SAVE_VIB_TIME", false);
+        newStartHour = appData.getString("newStartHour", "");
+        newStartMiunite = appData.getString("newStartMinute", "");
+        newEndHour = appData.getString("newEndHour", "");
+        newEndMiunite = appData.getString("newEndMinute", "");
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -240,66 +258,87 @@ public class DebugActivity extends AbstractGBActivity {
         sendCaseSpinner = findViewById(R.id.sendCaseSpinner);
         sendCaseSpinner.setAdapter(caseSpinnerArrayAdopter);
 
+        // 진동 체크 주기 시간 spinner
+        String[] timeCases = {"10", "20", "30","40","50","60"};
+        ArrayAdapter<String> timePeriodSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, timeCases);
+        sendVibPeriodSpinner = findViewById(R.id.sendVibPeriod);
+        sendVibPeriodSpinner.setAdapter(timePeriodSpinnerAdopter);
+
         HRvalText = (TextView) findViewById(R.id.realtimeHR);
         StepText = (TextView) findViewById(R.id.realtimeSteps);
         timePeriod = (TextView) findViewById(R.id.timePeriod);
         inTimeStep = (TextView) findViewById(R.id.inTimeStep);
         currentCase = (TextView) findViewById(R.id.currentCase);
 
-        startHour= findViewById(R.id.startHour);
+        startHour = findViewById(R.id.startHour);
         startminute = findViewById(R.id.startMinute);
-        endHour= findViewById(R.id.endHour);
+        endHour = findViewById(R.id.endHour);
         endminute = findViewById(R.id.endMinute);
         setVibrationTime = findViewById(R.id.setVibrationTime);
-        
+        activationTimePeriod = findViewById(R.id.activationTimePeriod);
+
+        vibrationTimePeriod = findViewById(R.id.vibrationTimePeriod);
+
+        // 커서 부분 제거
         startHour.setCursorVisible(false);
         startminute.setCursorVisible(false);
         endHour.setCursorVisible(false);
         endminute.setCursorVisible(false);
-        
-        
-        
+
+        // 시작 시간과 종료시간이 지정된 경우
+        appData = getSharedPreferences("appData", MODE_PRIVATE);
+        loadTime();
+
+        if (isSetVibrationTime) {
+         // 이전에 시간이 저장된 경우가 있으면 세팅
+            startHour.setText(newStartHour);
+            startminute.setText(newStartMiunite);
+            endHour.setText(newEndHour);
+            endminute.setText(newEndMiunite);
+        }
+
+
         setVibrationTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String startTime =null;
-                String endTime =null;
+                String startTime = null;
+                String endTime = null;
 
-                String newStartHour = startHour.getText().toString();
-                String newStartMiunite = startminute.getText().toString();
-                String newEndHour = endHour.getText().toString();
-                String newEndMiunite = endminute.getText().toString();
+                newStartHour = startHour.getText().toString();
+                newStartMiunite = startminute.getText().toString();
+                newEndHour = endHour.getText().toString();
+                newEndMiunite = endminute.getText().toString();
 
 
-                if(
-                        (!newStartHour.equals("")  && !newStartMiunite.equals(""))&&(newStartHour.length()<3&&newStartMiunite.length()<3 && Integer.parseInt(newStartHour)<24 && Integer.parseInt(newStartMiunite)<60)
-                        &&(!newEndHour.equals("")  && !newEndMiunite.equals(""))&&(newEndHour.length()<3&&newEndMiunite.length()<3 && Integer.parseInt(newEndHour)<24 && Integer.parseInt(newEndMiunite)<60)
-                        &&(Integer.parseInt(newEndHour)>Integer.parseInt(newStartHour))
+                if (
+                        (!newStartHour.equals("") && !newStartMiunite.equals("")) && (newStartHour.length() < 3 && newStartMiunite.length() < 3 && Integer.parseInt(newStartHour) < 24 && Integer.parseInt(newStartMiunite) < 60)
+                                && (!newEndHour.equals("") && !newEndMiunite.equals("")) && (newEndHour.length() < 3 && newEndMiunite.length() < 3 && Integer.parseInt(newEndHour) < 24 && Integer.parseInt(newEndMiunite) < 60)
+                                && (Integer.parseInt(newEndHour) > Integer.parseInt(newStartHour))
                 ) {
-                    if(startHour.getText().length()==1){
-                        newStartHour = '0'+startHour.getText().toString();
+                    if (startHour.getText().length() == 1) {
+                        newStartHour = '0' + startHour.getText().toString();
                     }
-                    if(startminute.getText().length()==1){
-                        newStartMiunite = '0'+ startminute.getText().toString();
+                    if (startminute.getText().length() == 1) {
+                        newStartMiunite = '0' + startminute.getText().toString();
                     }
-                    startTime = newStartHour+newStartMiunite+"00";
+                    startTime = newStartHour + newStartMiunite + "00";
 
-                    if(endHour.getText().length()==1){
-                        newEndHour = '0'+endHour.getText().toString();
+                    if (endHour.getText().length() == 1) {
+                        newEndHour = '0' + endHour.getText().toString();
                     }
-                    if(endminute.getText().length()==1){
-                        newEndMiunite = '0'+ endminute.getText().toString();
+                    if (endminute.getText().length() == 1) {
+                        newEndMiunite = '0' + endminute.getText().toString();
                     }
-                    endTime = newEndHour+newEndMiunite+"00";
+                    endTime = newEndHour + newEndMiunite + "00";
 
-                    GB.toast(newStartHour+"시"+newStartMiunite+"분 부터"+
-                                    newEndHour+"시"+newEndMiunite+"분 까지로 설정되었습니다."
+                    GB.toast(newStartHour + "시" + newStartMiunite + "분 부터" +
+                                    newEndHour + "시" + newEndMiunite + "분 까지로 설정되었습니다."
 
                             , Toast.LENGTH_SHORT, GB.INFO);
                     HuamiSupport.SET_START_TIME = Integer.parseInt(startTime);
                     HuamiSupport.SET_END_TIME = Integer.parseInt(endTime);
-                }
-                else{
+                    saveTime();
+                } else {
                     GB.toast("다시 입력하세요.", Toast.LENGTH_SHORT, GB.INFO);
                 }
             }
@@ -312,19 +351,27 @@ public class DebugActivity extends AbstractGBActivity {
         caseSetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String selectedState = (String)sendCaseSpinner.getSelectedItem();
-                if(selectedState.equals("NONE")){
+                String selectedState = (String) sendCaseSpinner.getSelectedItem();
+                if (selectedState.equals("NONE")) {
                     HuamiSupport.CASES = HuamiSupport.NONE;
-                }else if(selectedState.equals("MUTABILITY")){
+                } else if (selectedState.equals("MUTABILITY")) {
                     HuamiSupport.CASES = HuamiSupport.MUTABILITY;
-                }else if (selectedState.equals("ONE SECOND")){
+                } else if (selectedState.equals("ONE SECOND")) {
                     HuamiSupport.CASES = HuamiSupport.ONE_SECOND;
-                }else if(selectedState.equals("FIVE SECOND")){
+                } else if (selectedState.equals("FIVE SECOND")) {
                     HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
                 }
             }
         });
 
+        Button setPeriodButton = findViewById(R.id.setVibPeriod);
+        setPeriodButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String selectedTime = (String) sendVibPeriodSpinner.getSelectedItem();
+                HuamiSupport.RESET_TIME = Integer.parseInt(selectedTime) * 60;
+            }
+        });
 
 
         final boolean[] flag = {false};
