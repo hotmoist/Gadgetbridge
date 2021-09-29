@@ -62,14 +62,14 @@ public class InsertDB {
 
             RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, responseListener);
 //            registerRequest.setShouldCache(true);
+            registerRequest.setShouldCache(false);
             RequestQueue queue = Volley.newRequestQueue(context);
             queue.add(registerRequest);
+//            registerRequest.wait(100);
+            Thread.sleep(100);
             queue.getCache().invalidate("https://ljy897.cafe24.com/UserRegister1.php",true);
-            registerRequest.setShouldCache(false);
-            registerRequest.wait(100);
             registerRequest.cancel();
             queue.stop();
-
         }catch (Exception e){
 
         }
