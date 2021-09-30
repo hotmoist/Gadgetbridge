@@ -229,8 +229,7 @@ public class DebugActivity extends AbstractGBActivity {
         }
 
         else if(t ==2) {
-            // t == 2일때 활동 시간 지정
-            editor.putBoolean("SAVE_VIB_TIME", true);
+            // t == 2일때 활동 시간 지정정            editor.putBoolean("SAVE_VIB_TIME", true);
             editor.putString("newStartHour", startHour.getText().toString().trim());
             editor.putString("newStartMinute", startminute.getText().toString().trim());
             editor.putString("newEndHour", endHour.getText().toString().trim());

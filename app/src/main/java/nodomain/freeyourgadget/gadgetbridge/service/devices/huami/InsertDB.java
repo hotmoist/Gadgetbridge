@@ -41,7 +41,8 @@ public class InsertDB {
         this.heartrate = heartrate;
         this.totalstep = totalstep;
         this.realtimestep = realtimestep;
-        this.intimestep=intimestep;
+        this.intimestep = intimestep;
+
         Response.Listener<String> responseListener = new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -63,7 +64,8 @@ public class InsertDB {
         };
         try {
 
-            RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, intimestep , responseListener);
+            RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, intimestep, responseListener);
+   
 //            registerRequest.setShouldCache(true);
             registerRequest.setShouldCache(false);
             RequestQueue queue = Volley.newRequestQueue(context);
