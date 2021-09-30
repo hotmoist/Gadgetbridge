@@ -2028,10 +2028,10 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             if(SET_START_TIME<= CURRENT_TIME && SET_END_TIME>= CURRENT_TIME ||(SET_END_TIME==0&&SET_START_TIME==0)) {
                 LOG.debug( "현재시간  : "+ CURRENT_TIME+"    "+(CURRENT_TIME%360)+" 10분주기");
 //                if(CURRENT_TIME%360==0||CURRENT_TIME==0) {
-                    insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "");
+                    insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP+"");
 //                }
                 //            LOG.debug("insert Debug : "+ stepTimer+""+HuamiSupport.HEART_RATE+""+HuamiSupport.TOTAL_STEP+""+(HuamiSupport.TOTAL_STEP - beforeStep)+"");
-                LOG.debug("check Activity >> step timer: " + STEP_TIMER + ", heart rate: " + HuamiSupport.HEART_RATE + ", total step:" + HuamiSupport.TOTAL_STEP + ", step: " + IN_TIME_STEP + ", wear notify timer: " + WEAR_NOTIFY_TIMER);
+                LOG.debug("check Activity >> step timer: " + STEP_TIMER + ", heart rate: " + HuamiSupport.HEART_RATE + ", total step:" + HuamiSupport.TOTAL_STEP + ", step: " + IN_TIME_STEP + ", wear notify timer: " + WEAR_NOTIFY_TIMER + ", in time step : "+ IN_TIME_STEP);
                 LOG.debug("check Activity >> current case: " + CASES);
 
                 b_step = HuamiSupport.TOTAL_STEP;
