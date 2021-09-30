@@ -2026,7 +2026,6 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             CURRENT_TIME =Integer.parseInt(getTime.substring(11,13)+getTime.substring(14,16)+getTime.substring(17));
 
             if(SET_START_TIME<= CURRENT_TIME && SET_END_TIME>= CURRENT_TIME ||(SET_END_TIME==0&&SET_START_TIME==0)) {
-                LOG.debug( "현재시간  : "+ CURRENT_TIME+"    "+(CURRENT_TIME%360)+" 10분주기");
 //                if(CURRENT_TIME%360==0||CURRENT_TIME==0) {
                     insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP+"");
 //                }
@@ -2037,10 +2036,8 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                 b_step = HuamiSupport.TOTAL_STEP;
                 switch (CASES) {           //실험 대상군 설정
                     case MUTABILITY:
-
                         checkActivity(1, 1, MUTABILITY);
                         break;
-
                     case ONE_SECOND:
                         checkActivity(1, 1, ONE_SECOND);                  //진동 한번만 울리는 케이스
                         break;
@@ -2092,7 +2089,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                 }
             }
         };
-        timer.schedule(Task, 0, period * 1500);
+        timer.schedule(Task, 0, period * 2000);
     }
 
 
@@ -2141,13 +2138,13 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
 
             // case : MUTABILITY
             if (casenum == MUTABILITY) {
-                if (STEP_TIMER <= 20 && IN_TIME_STEP >= 10) {
+                if (STEP_TIMER <= 60 && IN_TIME_STEP >= 10) {
                     // 20초 이내 step이 10번 이상 이루어진 경우
                     // TODO : Notification destroy and vibration cancel
                     DESTROY_NOTIFICATION = true;
                     WATCH_VIB_SET = false;
                 }
-                if (STEP_TIMER > 20) {
+                if (STEP_TIMER > 60) {
                     // 20초 초과 후 진동을 멈춤
                     WATCH_VIB_SET = false;
                 }

@@ -36,7 +36,7 @@ public class InsertDB {
         this.context=context;
     }
 
-    public void insertData(String time, String heartrate, String totalstep, String intimestep, String realtimestep) {
+    public void insertData(String time, String heartrate, String totalstep, String realtimestep, String intimestep) {
         this.time = time;
         this.heartrate = heartrate;
         this.totalstep = totalstep;
@@ -70,7 +70,7 @@ public class InsertDB {
             queue.add(registerRequest);
 //            registerRequest.wait(100);
             Thread.sleep(100);
-            queue.getCache().invalidate("https://ljy897.cafe24.com/UserRegister1.php",true);
+            queue.getCache().invalidate("https://ljy897.cafe24.com/UserRegister3.php",true);
             registerRequest.cancel();
             queue.stop();
 
