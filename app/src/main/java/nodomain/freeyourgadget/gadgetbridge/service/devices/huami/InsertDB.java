@@ -19,6 +19,7 @@ public class InsertDB {
     String heartrate = "test";
     String totalstep = "test";
     String realtimestep = "test";
+    String intimestep = "test";
     Context context;
 
 
@@ -27,6 +28,7 @@ public class InsertDB {
         this.heartrate = heartrate;
         this.totalstep = totalstep;
         this.realtimestep = realtimestep;
+        this.intimestep = intimestep;
         this.context = context;
     }
 
@@ -34,11 +36,12 @@ public class InsertDB {
         this.context=context;
     }
 
-    public void insertData(String time, String heartrate, String totalstep, String realtimestep) {
+    public void insertData(String time, String heartrate, String totalstep, String realtimestep, String intimestep) {
         this.time = time;
         this.heartrate = heartrate;
         this.totalstep = totalstep;
         this.realtimestep = realtimestep;
+        this.intimestep = intimestep;
         Response.Listener<String> responseListener = new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -60,7 +63,7 @@ public class InsertDB {
         };
         try {
 
-            RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, responseListener);
+            RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, intimestep, responseListener);
 //            registerRequest.setShouldCache(true);
             registerRequest.setShouldCache(false);
             RequestQueue queue = Volley.newRequestQueue(context);
