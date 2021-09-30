@@ -8,6 +8,7 @@ import java.util.Map;
 
 public class RegisterRequest extends StringRequest {
     final static private String URL= "https://ljy897.cafe24.com/UserRegister.php";
+
     private Map<String,String> parameters;
 
 
