@@ -166,6 +166,8 @@ public class DebugActivity extends AbstractGBActivity {
         }
     });
 
+    String selectedState;
+
     TextView HRvalText;
     TextView StepText;
     TextView timePeriod;
@@ -219,15 +221,21 @@ public class DebugActivity extends AbstractGBActivity {
         notificationManager.cancel(id);
     }
 
-    private void saveTime(){
+    private void saveTime(int t){
         SharedPreferences.Editor editor = appData.edit();
-        editor.putBoolean("SAVE_VIB_TIME", true);
+        if(t == 1) {
+            // t == 1일때만 lab case 저장
+            editor.putString("LabCase", selectedState);
+        }
 
-        editor.putString("newStartHour", startHour.getText().toString().trim());
-        editor.putString("newStartMinute", startminute.getText().toString().trim());
-        editor.putString("newEndHour", endHour.getText().toString().trim());
-        editor.putString("newEndMinute", endminute.getText().toString().trim());
-
+        else if(t ==2) {
+            // t == 2일때 활동 시간 지정
+            editor.putBoolean("SAVE_VIB_TIME", true);
+            editor.putString("newStartHour", startHour.getText().toString().trim());
+            editor.putString("newStartMinute", startminute.getText().toString().trim());
+            editor.putString("newEndHour", endHour.getText().toString().trim());
+            editor.putString("newEndMinute", endminute.getText().toString().trim());
+        }
         editor.apply();
     }
 
@@ -237,6 +245,21 @@ public class DebugActivity extends AbstractGBActivity {
         newStartMiunite = appData.getString("newStartMinute", "");
         newEndHour = appData.getString("newEndHour", "");
         newEndMiunite = appData.getString("newEndMinute", "");
+
+        String loadedCase = appData.getString("LabCase", "NONE");
+        if (loadedCase.equals("NONE")){
+            HuamiSupport.CASES = HuamiSupport.NONE;
+//            currentCase.setText("current case: NONE");
+        }else if(loadedCase.equals("MUTABILITY")){
+            HuamiSupport.CASES = HuamiSupport.MUTABILITY;
+//            currentCase.setText("Current case: Mutability");
+        }else if (loadedCase.equals("ONE SECOND")){
+            HuamiSupport.CASES = HuamiSupport.ONE_SECOND;
+//            currentCase.setText("Current case: One Second");
+        }else if (loadedCase.equals("FIVE SECOND")){
+            HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
+//            currentCase.setText("Current case: Five Second");
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -337,7 +360,7 @@ public class DebugActivity extends AbstractGBActivity {
                             , Toast.LENGTH_SHORT, GB.INFO);
                     HuamiSupport.SET_START_TIME = Integer.parseInt(startTime);
                     HuamiSupport.SET_END_TIME = Integer.parseInt(endTime);
-                    saveTime();
+                    saveTime(2);
                 } else {
                     GB.toast("다시 입력하세요.", Toast.LENGTH_SHORT, GB.INFO);
                 }
@@ -351,7 +374,7 @@ public class DebugActivity extends AbstractGBActivity {
         caseSetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String selectedState = (String) sendCaseSpinner.getSelectedItem();
+                selectedState = (String) sendCaseSpinner.getSelectedItem();
                 if (selectedState.equals("NONE")) {
                     HuamiSupport.CASES = HuamiSupport.NONE;
                 } else if (selectedState.equals("MUTABILITY")) {
@@ -361,6 +384,7 @@ public class DebugActivity extends AbstractGBActivity {
                 } else if (selectedState.equals("FIVE SECOND")) {
                     HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
                 }
+            saveTime(1);
             }
         });
 
