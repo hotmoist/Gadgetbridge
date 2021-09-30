@@ -36,12 +36,14 @@ public class InsertDB {
         this.context=context;
     }
 
-    public void insertData(String time, String heartrate, String totalstep, String intimestep, String realtimestep) {
+    public void insertData(String time, String heartrate, String totalstep, String realtimestep, String intimestep) {
+
         this.time = time;
         this.heartrate = heartrate;
         this.totalstep = totalstep;
         this.realtimestep = realtimestep;
-        this.intimestep=intimestep;
+        this.intimestep = intimestep;
+
         Response.Listener<String> responseListener = new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -63,14 +65,16 @@ public class InsertDB {
         };
         try {
 
-            RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, intimestep , responseListener);
+            RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, intimestep, responseListener);
+   
 //            registerRequest.setShouldCache(true);
             registerRequest.setShouldCache(false);
             RequestQueue queue = Volley.newRequestQueue(context);
             queue.add(registerRequest);
 //            registerRequest.wait(100);
             Thread.sleep(100);
-            queue.getCache().invalidate("https://ljy897.cafe24.com/UserRegister1.php",true);
+            queue.getCache().invalidate("https://ljy897.cafe24.com/UserRegister.php",true);
+  
             registerRequest.cancel();
             queue.stop();
 
