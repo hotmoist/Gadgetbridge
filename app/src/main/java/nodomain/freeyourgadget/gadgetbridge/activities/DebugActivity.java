@@ -48,17 +48,25 @@ import androidx.core.app.NavUtils;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.RemoteInput;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 
 import nodomain.freeyourgadget.gadgetbridge.GBApplication;
 import nodomain.freeyourgadget.gadgetbridge.R;
 import nodomain.freeyourgadget.gadgetbridge.Widget;
+import nodomain.freeyourgadget.gadgetbridge.adapter.GBDeviceAdapterv2;
+import nodomain.freeyourgadget.gadgetbridge.devices.DeviceManager;
+import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice;
 import nodomain.freeyourgadget.gadgetbridge.model.ActivitySample;
 import nodomain.freeyourgadget.gadgetbridge.model.DeviceService;
 import nodomain.freeyourgadget.gadgetbridge.util.GB;
@@ -145,10 +153,10 @@ public class DebugActivity extends AbstractGBActivity {
 
             switch (msg.what) {
                 case 1:
-                    HRvalText.setText("Heart rate: " + HuamiSupport.HEART_RATE + "bpm");
-                    StepText.setText("하루 총 스텝:" + HuamiSupport.TOTAL_STEP);
-                    timePeriod.setText("경과 시간: " + (int) (HuamiSupport.STEP_TIMER / 60) + ":" + (HuamiSupport.STEP_TIMER) % 60);
-                    inTimeStep.setText("주기 내 STEP: " + HuamiSupport.IN_TIME_STEP);
+//                    HRvalText.setText("HR: " + HuamiSupport.HEART_RATE + "bpm");
+//                    StepText.setText("TOTAL STEP : " + HuamiSupport.TOTAL_STEP);
+                    timePeriod.setText("경과 시간: " + (int) (HuamiSupport.STEP_TIMER / 60) + ":" + (HuamiSupport.STEP_TIMER) % 60+ " / "+ (HuamiSupport.RESET_TIME/60)+":00");
+                    inTimeStep.setText("STEP\n" + HuamiSupport.IN_TIME_STEP);
                     activationTimePeriod.setText("설정 활동 시간: " + newStartHour +":" + newStartMiunite + " ~ " + newEndHour +":" + newEndMiunite);
                     vibrationTimePeriod.setText("설정 주기 간격: " + (HuamiSupport.RESET_TIME/60));
                     if (HuamiSupport.CASES == HuamiSupport.NONE) {
@@ -260,6 +268,12 @@ public class DebugActivity extends AbstractGBActivity {
 //            currentCase.setText("Current case: Five Second");
         }
     }
+    
+    //추가부분
+    private DeviceManager deviceManager;
+    private GBDeviceAdapterv2 mGBDeviceAdapter;
+    private RecyclerView deviceListView;
+    private Button fab;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -286,8 +300,8 @@ public class DebugActivity extends AbstractGBActivity {
         sendVibPeriodSpinner = findViewById(R.id.sendVibPeriod);
         sendVibPeriodSpinner.setAdapter(timePeriodSpinnerAdopter);
 
-        HRvalText = (TextView) findViewById(R.id.realtimeHR);
-        StepText = (TextView) findViewById(R.id.realtimeSteps);
+//        HRvalText = (TextView) findViewById(R.id.realtimeHR);
+//        StepText = (TextView) findViewById(R.id.realtimeSteps);
         timePeriod = (TextView) findViewById(R.id.timePeriod);
         inTimeStep = (TextView) findViewById(R.id.inTimeStep);
         currentCase = (TextView) findViewById(R.id.currentCase);
@@ -418,14 +432,35 @@ public class DebugActivity extends AbstractGBActivity {
             }
         });
 
-        Button dataTest = findViewById(R.id.sendDataBase);
-        dataTest.setOnClickListener(new View.OnClickListener() {
+//        Button dataTest = findViewById(R.id.sendDataBase);
+//        dataTest.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                InsertDB insertDB = new InsertDB(DebugActivity.this);
+//                insertDB.insertData("1", "1", "1", "1");
+//            }
+//        });
+
+
+        deviceManager = ((GBApplication) getApplication()).getDeviceManager();
+
+        deviceListView = findViewById(R.id.deviceListView);
+        deviceListView.setHasFixedSize(true);
+        deviceListView.setLayoutManager(new LinearLayoutManager(this));
+
+        List<GBDevice> deviceList = deviceManager.getDevices();
+        mGBDeviceAdapter = new GBDeviceAdapterv2(this, deviceList);
+
+        deviceListView.setAdapter(this.mGBDeviceAdapter);
+
+        fab = findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                InsertDB insertDB = new InsertDB(DebugActivity.this);
-                insertDB.insertData("1", "1", "1", "1");
+                startActivity(new Intent(GBApplication.getContext(), DiscoveryActivity.class));
             }
         });
+
 
     }
 
