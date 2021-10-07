@@ -14,7 +14,7 @@
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:gravity="center"
-            android:layout_marginTop="70dp"
+            android:layout_marginTop="80dp"
             android:orientation="vertical">
 
             <androidx.recyclerview.widget.RecyclerView
@@ -25,14 +25,6 @@
                 android:layout_centerHorizontal="true"
                 android:divider="@null" />
 
-            <Button
-                android:id="@+id/fab"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentEnd="true"
-                android:layout_gravity="bottom|end"
-                android:text="주변 기기 찾기" />
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -44,7 +36,7 @@
                     android:paddingLeft="10dp"
                     android:gravity="left"
                     android:text="경과 시간: 0"
-                    android:textSize="10dp"
+                    android:textSize="30dp"
                     grid:layout_columnSpan="4"
                     grid:layout_gravity="fill_horizontal" />
 
@@ -55,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="STEP\n0"
-                android:textSize="200px"
+                android:textSize="100px"
                 grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />
 
@@ -251,7 +243,8 @@
             <LinearLayout
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:layout_width="match_parent">
+                android:layout_width="match_parent"
+                android:orientation="vertical">
                 <Button
                     android:id="@+id/setVibrationTime"
                     android:layout_width="match_parent"
@@ -259,6 +252,12 @@
                     android:text="시간 설정"
                     android:gravity="center"
                     grid:layout_gravity="fill_horizontal" />
+                <Button
+                    android:id="@+id/fab"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|end"
+                    android:text="주변 기기 찾기" />
             </LinearLayout>
 <!--          시간 설정 -->
 
