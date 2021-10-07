@@ -2007,12 +2007,13 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     public static int IN_TIME_STEP = 0;     // 주기 내의 step 수
     public static boolean IS_NOTIFY = false;        // if true call message else if false nothing 알람창
     public static int STEP_TIMER = -1;      // step 시간 측정 타이머
+    public static int VIBRATION_TAG=0;
 
     public static int SET_START_TIME=0;
     public static int SET_END_TIME=0;
     int CURRENT_TIME =0;
 
-    public static int RESET_TIME = 2400;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
+    public static int RESET_TIME = 60;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
 //    int resetTime = 40;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
     InsertDB insert;
     final Timer timer = new Timer();
@@ -2026,9 +2027,12 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             CURRENT_TIME =Integer.parseInt(getTime.substring(11,13)+getTime.substring(14,16)+getTime.substring(17));
 
             if(SET_START_TIME<= CURRENT_TIME && SET_END_TIME>= CURRENT_TIME ||(SET_END_TIME==0&&SET_START_TIME==0)) {
-//                if(CURRENT_TIME%360==0||CURRENT_TIME==0) {
-                    insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP+"");
-//                }
+
+                insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP+"", VIBRATION_TAG+"");
+                if(VIBRATION_TAG>0){
+                    VIBRATION_TAG++;
+                }
+
                 //            LOG.debug("insert Debug : "+ stepTimer+""+HuamiSupport.HEART_RATE+""+HuamiSupport.TOTAL_STEP+""+(HuamiSupport.TOTAL_STEP - beforeStep)+"");
                 LOG.debug("check Activity >> step timer: " + STEP_TIMER + ", heart rate: " + HuamiSupport.HEART_RATE + ", total step:" + HuamiSupport.TOTAL_STEP + ", step: " + IN_TIME_STEP + ", wear notify timer: " + WEAR_NOTIFY_TIMER + ", in time step : "+ IN_TIME_STEP);
                 LOG.debug("check Activity >> current case: " + CASES);
@@ -2068,28 +2072,40 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                 switch (casenum) {
                     case MUTABILITY:
                         vibrateOnce();
+                        if(VIBRATION_TAG==0){
+                            VIBRATION_TAG++;
+                        }
                         if (!WATCH_VIB_SET) {
+                            VIBRATION_TAG=0;
                             timer.cancel();
                         }
                         break;
                     case ONE_SECOND:
                         vibrateOnce();
+                        if(VIBRATION_TAG==0){
+                            VIBRATION_TAG++;
+                        }
                         cnt++;
                         if (cnt >= 1) {
                             cnt = 0;
+                            VIBRATION_TAG=0;
                             timer.cancel();
                         }
                     case FIVE_SECOND:
                         vibrateOnce();
+                        if(VIBRATION_TAG==0){
+                            VIBRATION_TAG++;
+                        }
                         cnt++;
                         if (cnt >= 5) {
                             cnt = 0;
+                            VIBRATION_TAG=0;
                             timer.cancel();
                         }
                 }
             }
         };
-        timer.schedule(Task, 0, period * 2000);
+        timer.schedule(Task, 0, period * 3500);
     }
 
 

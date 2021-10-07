@@ -11,7 +11,7 @@ public class RegisterRequest extends StringRequest {
     private Map<String,String> parameters;
 
 
-    public RegisterRequest(String time, String heartrate, String totalstep, String realtimestep, String intimestep, Response.Listener<String> listener) {
+    public RegisterRequest(String time, String heartrate, String totalstep, String realtimestep, String intimestep, String vibrationtag, Response.Listener<String> listener) {
         super(Method.POST, URL, listener, null);
         parameters = new HashMap<>();
         parameters.put("time",time);
@@ -19,6 +19,7 @@ public class RegisterRequest extends StringRequest {
         parameters.put("totalstep",totalstep);
         parameters.put("realtimestep",realtimestep);
         parameters.put("intimestep",intimestep);
+        parameters.put("vibrationtag",vibrationtag);
     }
 
     @Override
