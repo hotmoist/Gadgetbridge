@@ -14,28 +14,29 @@
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:gravity="center"
+            android:layout_marginTop="70dp"
             android:orientation="vertical">
 
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/deviceListView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:divider="@null" />
 
+            <Button
+                android:id="@+id/fab"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                android:layout_gravity="bottom|end"
+                android:text="주변 기기 찾기" />
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:paddingTop="30dp"
-                android:layout_marginBottom="50dp">
-                <TextView
-                    android:id="@+id/realtimeHR"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingLeft="10dp"
-                    android:text="00 bpm"
-                    android:gravity="left"
-
-                    android:textSize="10dp"
-                    grid:layout_columnSpan="4"
-                    grid:layout_gravity="fill_horizontal" />
-
-
+                android:orientation="vertical">
                 <TextView
                     android:id="@+id/timePeriod"
                     android:layout_width="match_parent"
@@ -49,16 +50,6 @@
 
 
             <TextView
-                android:id="@+id/realtimeSteps"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="left"
-                android:paddingLeft="10dp"
-                android:text="TOTAL STEP : 0"
-                android:textSize="10dp"
-                grid:layout_columnSpan="4"
-                grid:layout_gravity="fill_horizontal" />
-            <TextView
                 android:id="@+id/inTimeStep"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -69,8 +60,6 @@
                 grid:layout_gravity="fill_horizontal" />
 
             </LinearLayout>
-
-
 
 
             <LinearLayout
@@ -292,10 +281,7 @@
 <!--                grid:layout_columnSpan="4"-->
 <!--                grid:layout_gravity="fill_horizontal" />-->
 
-
-
         </LinearLayout>
-
     </ScrollView>
 
 </LinearLayout>

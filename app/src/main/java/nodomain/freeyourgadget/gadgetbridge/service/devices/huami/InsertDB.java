@@ -20,15 +20,17 @@ public class InsertDB {
     String totalstep = "test";
     String realtimestep = "test";
     String intimestep = "test";
+    String vibrationtag = "test";
     Context context;
 
 
-    InsertDB(String time, String heartrate, String totalstep, String realtimestep, String intimestep , Context context) {
+    InsertDB(String time, String heartrate, String totalstep, String realtimestep, String intimestep, String vibrationtag , Context context) {
         this.time = time;
         this.heartrate = heartrate;
         this.totalstep = totalstep;
         this.realtimestep = realtimestep;
         this.intimestep = intimestep;
+        this.vibrationtag = vibrationtag;
         this.context = context;
     }
 
@@ -36,12 +38,13 @@ public class InsertDB {
         this.context=context;
     }
 
-    public void insertData(String time, String heartrate, String totalstep, String realtimestep, String intimestep) {
+    public void insertData(String time, String heartrate, String totalstep, String realtimestep, String intimestep, String vibrationtag) {
         this.time = time;
         this.heartrate = heartrate;
         this.totalstep = totalstep;
         this.realtimestep = realtimestep;
         this.intimestep = intimestep;
+        this.vibrationtag = vibrationtag;
 
         Response.Listener<String> responseListener = new Response.Listener<String>() {
             @Override
@@ -64,7 +67,7 @@ public class InsertDB {
         };
         try {
 
-            RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, intimestep, responseListener);
+            RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, intimestep, vibrationtag, responseListener);
    
 //            registerRequest.setShouldCache(true);
             registerRequest.setShouldCache(false);
