@@ -2007,7 +2007,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     public static int IN_TIME_STEP = 0;     // 주기 내의 step 수
     public static boolean IS_NOTIFY = false;        // if true call message else if false nothing 알람창
     public static int STEP_TIMER = -1;      // step 시간 측정 타이머
-    public static int VIBRATION_TAG=0;
+    public static int VIBRATION_TAG=0;      // 진동이 오는동안을 표시해줌
 
     public static int SET_START_TIME=0;
     public static int SET_END_TIME=0;
@@ -2032,6 +2032,8 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                 if(VIBRATION_TAG>0){
                     VIBRATION_TAG++;
                 }
+                // 진동이 오는 동안 계속해서 1씩 더해줌. 10초동안 울리면 DB에 1~10으로 초당 저장
+
 
                 //            LOG.debug("insert Debug : "+ stepTimer+""+HuamiSupport.HEART_RATE+""+HuamiSupport.TOTAL_STEP+""+(HuamiSupport.TOTAL_STEP - beforeStep)+"");
                 LOG.debug("check Activity >> step timer: " + STEP_TIMER + ", heart rate: " + HuamiSupport.HEART_RATE + ", total step:" + HuamiSupport.TOTAL_STEP + ", step: " + IN_TIME_STEP + ", wear notify timer: " + WEAR_NOTIFY_TIMER + ", in time step : "+ IN_TIME_STEP);
@@ -2073,33 +2075,33 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                     case MUTABILITY:
                         vibrateOnce();
                         if(VIBRATION_TAG==0){
-                            VIBRATION_TAG++;
+                            VIBRATION_TAG=1;        //진동이 울리면 시작됐다고 표시
                         }
                         if (!WATCH_VIB_SET) {
-                            VIBRATION_TAG=0;
+                            VIBRATION_TAG=0;        //진동이 꺼지면 초기화
                             timer.cancel();
                         }
                         break;
                     case ONE_SECOND:
                         vibrateOnce();
                         if(VIBRATION_TAG==0){
-                            VIBRATION_TAG++;
+                            VIBRATION_TAG=1;        //진동이 울리면 시작됐다고 표시
                         }
                         cnt++;
                         if (cnt >= 1) {
                             cnt = 0;
-                            VIBRATION_TAG=0;
+                            VIBRATION_TAG=0;        //진동이 꺼지면 초기화
                             timer.cancel();
                         }
                     case FIVE_SECOND:
                         vibrateOnce();
                         if(VIBRATION_TAG==0){
-                            VIBRATION_TAG++;
+                            VIBRATION_TAG=1;        //진동이 울리면 시작됐다고 표시
                         }
                         cnt++;
                         if (cnt >= 5) {
                             cnt = 0;
-                            VIBRATION_TAG=0;
+                            VIBRATION_TAG=0;        //진동이 꺼지면 초기화
                             timer.cancel();
                         }
                 }
