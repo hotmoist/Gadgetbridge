@@ -121,7 +121,7 @@
                 android:clickable="true"
                 android:contentDescription="@string/candidate_item_device_image"
                 android:background="?android:attr/selectableItemBackground"
-                card_view:srcCompat="@drawable/ic_more_vert"
+                card_view:srcCompat="@drawable/ic_refresh"
                 android:focusable="true"
                 card_view:tint="@color/secondarytext" />
 
@@ -245,7 +245,7 @@
                         android:focusable="true"
                         android:padding="4dp"
                         android:scaleType="fitXY"
-                        card_view:srcCompat="@drawable/ic_refresh"
+                        card_view:srcCompat="@drawable/cpv_preset_checked"
                         card_view:tint="@color/secondarytext" />
 
                     <ProgressBar

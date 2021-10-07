@@ -14,7 +14,7 @@
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:gravity="center"
-            android:layout_marginTop="80dp"
+            android:layout_marginTop="70dp"
             android:orientation="vertical">
 
             <androidx.recyclerview.widget.RecyclerView
@@ -24,7 +24,6 @@
                 android:layout_alignParentTop="true"
                 android:layout_centerHorizontal="true"
                 android:divider="@null" />
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -258,16 +257,15 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom|end"
                     android:text="주변 기기 찾기" />
+                <Button
+                    android:id="@+id/sendEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="send email"
+                    grid:layout_columnSpan="4"
+                    grid:layout_gravity="fill_horizontal" />
             </LinearLayout>
 <!--          시간 설정 -->
-
-            <Button
-                android:id="@+id/sendEmail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="send email"
-                grid:layout_columnSpan="4"
-                grid:layout_gravity="fill_horizontal" />
 
 
 

@@ -91,6 +91,7 @@ public class ControlCenterv2 extends AppCompatActivity
     private GBDeviceAdapterv2 mGBDeviceAdapter;
     private RecyclerView deviceListView;
     private FloatingActionButton fab;
+
     private boolean isLanguageInvalid = false;
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
