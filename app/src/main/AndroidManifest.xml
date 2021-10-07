@@ -66,13 +66,6 @@
             android:label="@string/title_activity_controlcenter"
             android:launchMode="singleTop"
             android:theme="@style/SplashTheme">
-            <intent-filter>
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".activities.SettingsActivity"
@@ -405,10 +398,19 @@
         -->
         <activity
             android:name=".activities.DebugActivity"
-            android:label="@string/title_activity_debug"
+            android:label="가젯브릿지"
             android:parentActivityName=".activities.ControlCenterv2"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="stateHidden" />
+            android:windowSoftInputMode="stateHidden">
+
+            <intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".activities.AboutActivity"
             android:label="@string/about_activity_title"
