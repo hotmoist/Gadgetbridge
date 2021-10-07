@@ -2093,6 +2093,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                             VIBRATION_TAG=0;        //진동이 꺼지면 초기화
                             timer.cancel();
                         }
+                        break;
                     case FIVE_SECOND:
                         vibrateOnce();
                         if(VIBRATION_TAG==0){
@@ -2104,6 +2105,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                             VIBRATION_TAG=0;        //진동이 꺼지면 초기화
                             timer.cancel();
                         }
+                        break;
                 }
             }
         };
