@@ -223,7 +223,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     private volatile boolean isReadingSensorData;
 
     public static int HEART_RATE = -1;
-//    public static int STEP_TIMER = -10;
+    //    public static int STEP_TIMER = -10;
     public static int STEP = -1;
 
 
@@ -2000,6 +2000,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     public final static int MUTABILITY = 0;
     public final static int ONE_SECOND = 1;
     public final static int FIVE_SECOND = 2;
+    public final static int NONE_MUTABILITY = 3;
 
     public static int CASES = NONE;
 
@@ -2007,14 +2008,14 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     public static int IN_TIME_STEP = 0;     // 주기 내의 step 수
     public static boolean IS_NOTIFY = false;        // if true call message else if false nothing 알람창
     public static int STEP_TIMER = -1;      // step 시간 측정 타이머
-    public static int VIBRATION_TAG=0;      // 진동이 오는동안을 표시해줌
+    public static int VIBRATION_TAG = 0;      // 진동이 오는동안을 표시해줌
 
-    public static int SET_START_TIME=0;
-    public static int SET_END_TIME=0;
-    int CURRENT_TIME =0;
+    public static int SET_START_TIME = 0;
+    public static int SET_END_TIME = 0;
+    int CURRENT_TIME = 0;
 
-    public static int RESET_TIME = 60;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
-//    int resetTime = 40;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
+    public static int RESET_TIME = 120;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
+    //    int resetTime = 40;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
     InsertDB insert;
     final Timer timer = new Timer();
     TimerTask Task = new TimerTask() {
@@ -2024,19 +2025,19 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             Date date = new Date(now);
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
             String getTime = dateFormat.format(date);
-            CURRENT_TIME =Integer.parseInt(getTime.substring(11,13)+getTime.substring(14,16)+getTime.substring(17));
+            CURRENT_TIME = Integer.parseInt(getTime.substring(11, 13) + getTime.substring(14, 16) + getTime.substring(17));
 
-            if(SET_START_TIME<= CURRENT_TIME && SET_END_TIME>= CURRENT_TIME ||(SET_END_TIME==0&&SET_START_TIME==0)) {
+            if (SET_START_TIME <= CURRENT_TIME && SET_END_TIME >= CURRENT_TIME || (SET_END_TIME == 0 && SET_START_TIME == 0)) {
 
-                insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP+"", VIBRATION_TAG+"");
-                if(VIBRATION_TAG>0){
+                insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP + "", VIBRATION_TAG + "");
+                if (VIBRATION_TAG > 0) {
                     VIBRATION_TAG++;
                 }
                 // 진동이 오는 동안 계속해서 1씩 더해줌. 10초동안 울리면 DB에 1~10으로 초당 저장
 
 
                 //            LOG.debug("insert Debug : "+ stepTimer+""+HuamiSupport.HEART_RATE+""+HuamiSupport.TOTAL_STEP+""+(HuamiSupport.TOTAL_STEP - beforeStep)+"");
-                LOG.debug("check Activity >> step timer: " + STEP_TIMER + ", heart rate: " + HuamiSupport.HEART_RATE + ", total step:" + HuamiSupport.TOTAL_STEP + ", step: " + IN_TIME_STEP + ", wear notify timer: " + WEAR_NOTIFY_TIMER + ", in time step : "+ IN_TIME_STEP);
+                LOG.debug("check Activity >> step timer: " + STEP_TIMER + ", heart rate: " + HuamiSupport.HEART_RATE + ", total step:" + HuamiSupport.TOTAL_STEP + ", step: " + IN_TIME_STEP + ", wear notify timer: " + WEAR_NOTIFY_TIMER + ", in time step : " + IN_TIME_STEP);
                 LOG.debug("check Activity >> current case: " + CASES);
 
                 b_step = HuamiSupport.TOTAL_STEP;
@@ -2050,8 +2051,10 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                     case FIVE_SECOND:
                         checkActivity(1, 1, FIVE_SECOND);                  //진동 다섯번 울리는 케이스
                         break;
+                    case NONE_MUTABILITY:
+                        checkActivity(1, 1, NONE_MUTABILITY);
                 }
-            }else {
+            } else {
                 STEP_TIMER = -1;
                 IN_TIME_STEP = 0;
                 WEAR_NOTIFY_TIMER = 1;
@@ -2060,8 +2063,8 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
         }
     };
 
-    public void makeDB(){
-        insert =  new InsertDB(getContext());
+    public void makeDB() {
+        insert = new InsertDB(getContext());
     }
 
     private void vibration_timer(int period, final int time, int casenum) {
@@ -2072,49 +2075,54 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             @Override
             public void run() {
                 switch (casenum) {
+
                     case MUTABILITY:
                         vibrateOnce();
-                        if(VIBRATION_TAG==0){
-                            VIBRATION_TAG=1;        //진동이 울리면 시작됐다고 표시
+                        if (VIBRATION_TAG == 0) {
+                            VIBRATION_TAG = 1;        //진동이 울리면 시작됐다고 표시
                         }
                         if (!WATCH_VIB_SET) {
-                            VIBRATION_TAG=0;        //진동이 꺼지면 초기화
+                            VIBRATION_TAG = 0;        //진동이 꺼지면 초기화
                             timer.cancel();
                         }
                         break;
                     case ONE_SECOND:
                         vibrateOnce();
-                        if(VIBRATION_TAG==0){
-                            VIBRATION_TAG=1;        //진동이 울리면 시작됐다고 표시
+                        if (VIBRATION_TAG == 0) {
+                            VIBRATION_TAG = 1;        //진동이 울리면 시작됐다고 표시
                         }
                         cnt++;
                         if (cnt >= 1) {
                             cnt = 0;
-                            VIBRATION_TAG=0;        //진동이 꺼지면 초기화
+                            VIBRATION_TAG = 0;        //진동이 꺼지면 초기화
                             timer.cancel();
                         }
                         break;
                     case FIVE_SECOND:
                         vibrateOnce();
-                        if(VIBRATION_TAG==0){
-                            VIBRATION_TAG=1;        //진동이 울리면 시작됐다고 표시
+                        if (VIBRATION_TAG == 0) {
+                            VIBRATION_TAG = 1;        //진동이 울리면 시작됐다고 표시
                         }
                         cnt++;
-                        if (cnt >= 5) {
+                        if (cnt >= 3) {
                             cnt = 0;
-                            VIBRATION_TAG=0;        //진동이 꺼지면 초기화
+                            VIBRATION_TAG = 0;        //진동이 꺼지면 초기화
                             timer.cancel();
                         }
                         break;
+                    case NONE_MUTABILITY:
+                        vibrateOnce();
+                        if (VIBRATION_TAG == 0) {
+                            VIBRATION_TAG = 1;
+                        }
                 }
             }
         };
-        timer.schedule(Task, 0, period * 3500);
+        timer.schedule(Task, 0, period * 3000);
     }
 
 
     /**
-     * TODO : 각 케이스 마다 주기와 알고리즘을 설정필요
      * : MUTABILITY -> 20초 동안 진동을 준다 + 휴대폰에서 운동 요구 알림이 온다.
      * :            -> notification compat을 누르는 순간 알림 destory와 밴드의 vibration을 멈춘다.
      *
@@ -2127,55 +2135,77 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     public static int WEAR_NOTIFY_TIMER = 0;
 
     void checkActivity(int period, int time, int casenum) {     //주기별 task설정
-
+        LOG.debug("check activity >> IS_NOTIFY: " + IS_NOTIFY + " DESTROY NOTIFI:" + DESTROY_NOTIFICATION );
         if (HuamiSupport.HEART_RATE > 0) {
             if (STEP_TIMER == 0 && !initial) {
+                LOG.debug("check activity >> IS_NOTIFIED");
                 // base 설정
                 // inTimeStep이 10회 미만인 경우
                 // 가장 초기엔 현재 측정된 step을 설정한다.
                 if (IN_TIME_STEP > -1 && IN_TIME_STEP < 10) {
                     // 한 주기 동안 10회 미만의 step인 경우 -> notify 실시
-                    // TODO : notify for exercise implement needed
                     if (casenum == MUTABILITY) {
                         WATCH_VIB_SET = true;
                     }
                     IS_NOTIFY = true;
+
+                    LOG.debug("check activity >> IS_NOTIFY: " + IS_NOTIFY);
                     vibration_timer(1, 1, casenum);
                 }
+//                else if (IN_TIME_STEP >= 10 ){
+//                    STEP_TIMER = 0;
+//                    initial = false;
+//                }
                 IN_TIME_STEP = HuamiSupport.STEP;
             }
 
-            if (STEP_TIMER == 0) {
-                // step timer 이 수행하기 시작하므로 false로 지정
-                WEAR_NOTIFY_TIMER = 1;
-                initial = false;
-            }
-            if (STEP_TIMER > 0) {
-                // 주기 내 step 수들을 저장
-                IN_TIME_STEP += HuamiSupport.STEP;
-            }
-            STEP_TIMER++;
+            if (IN_TIME_STEP >= 10) {
+                STEP_TIMER = 1;
+                IN_TIME_STEP = 0;
+                DESTROY_NOTIFICATION = true;
 
-            // case : MUTABILITY
-            if (casenum == MUTABILITY) {
-                if (STEP_TIMER <= 60 && IN_TIME_STEP >= 10) {
-                    // 20초 이내 step이 10번 이상 이루어진 경우
-                    // TODO : Notification destroy and vibration cancel
-                    DESTROY_NOTIFICATION = true;
-                    WATCH_VIB_SET = false;
+            } else {
+
+                if (STEP_TIMER == 0) {
+                    // step timer 이 수행하기 시작하므로 false로 지정
+                    WEAR_NOTIFY_TIMER = 1;
+                    initial = false;
                 }
-                if (STEP_TIMER > 60) {
-                    // 20초 초과 후 진동을 멈춤
-                    WATCH_VIB_SET = false;
+
+
+                if (STEP_TIMER > 0) {
+                    // 주기 내 step 수들을 저장
+                    IN_TIME_STEP += HuamiSupport.STEP;
+                }
+                STEP_TIMER++;
+
+                // case : MUTABILITY
+                if (casenum == MUTABILITY) {
+                    if (STEP_TIMER <= 90 && IN_TIME_STEP >= 10) {
+                        // 20초 이내 step이 10번 이상 이루어진 경우
+                        DESTROY_NOTIFICATION = true;
+                        WATCH_VIB_SET = false;
+                    }
+                    if (STEP_TIMER > 90) {
+                        // 20초 초과 후 진동을 멈춤
+                        WATCH_VIB_SET = false;
+                    }
+                }
+
+                // case : NON_MUTABILITY
+                if (casenum == NONE_MUTABILITY) {
+                    if (STEP_TIMER > 90) {
+                        WATCH_VIB_SET = false;
+                    }
                 }
             }
+
             if (STEP_TIMER >= RESET_TIME) {
                 // 주기 리셋
                 STEP_TIMER = 0;
             }
         } else {
             // set timer to 0 constantly
-            // TODO : notify to user "wear device"
             WEAR_NOTIFY_TIMER += 1;
             IN_TIME_STEP = 0;
             STEP_TIMER = -1;

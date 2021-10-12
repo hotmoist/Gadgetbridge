@@ -36,6 +36,7 @@
                     android:textSize="30sp"
                     grid:layout_columnSpan="4"
                     grid:layout_gravity="fill_horizontal" />
+
                 <TextView
                     android:id="@+id/inTimeStep"
                     android:layout_width="match_parent"

@@ -15,8 +15,6 @@
 
 package nodomain.freeyourgadget.gadgetbridge.activities;
 
-import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -31,31 +29,24 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
 import androidx.core.app.NavUtils;
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.RemoteInput;
-import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -67,13 +58,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
-import de.cketti.library.changelog.ChangeLog;
 import nodomain.freeyourgadget.gadgetbridge.GBApplication;
 import nodomain.freeyourgadget.gadgetbridge.R;
 import nodomain.freeyourgadget.gadgetbridge.Widget;
@@ -82,12 +69,9 @@ import nodomain.freeyourgadget.gadgetbridge.devices.DeviceManager;
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice;
 import nodomain.freeyourgadget.gadgetbridge.model.ActivitySample;
 import nodomain.freeyourgadget.gadgetbridge.model.DeviceService;
-import nodomain.freeyourgadget.gadgetbridge.util.AndroidUtils;
 import nodomain.freeyourgadget.gadgetbridge.util.GB;
-import nodomain.freeyourgadget.gadgetbridge.util.Prefs;
 import nodomain.freeyourgadget.gadgetbridge.util.WidgetPreferenceStorage;
 
-import nodomain.freeyourgadget.gadgetbridge.service.devices.miband.RealtimeSamplesSupport;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huami.HuamiSupport;
 
 
@@ -182,6 +166,8 @@ public class DebugActivity extends AbstractGBActivity {
                         currentCase.setText("Current case: One Second");
                     } else if (HuamiSupport.CASES == HuamiSupport.FIVE_SECOND) {
                         currentCase.setText("Current case: Five Second");
+                    } else if (HuamiSupport.CASES == HuamiSupport.NONE_MUTABILITY){
+                        currentCase.setText("current case: None Mutability");
                     }
                     break;
             }
@@ -204,9 +190,6 @@ public class DebugActivity extends AbstractGBActivity {
     Button setVibrationTime;
 
     TextView vibrationTimePeriod;
-    //권한 부여
-    private boolean pesterWithPermissions = true;
-    private static PhoneStateListener fakeStateListener;
 
     // 활동 시간 관련
     private boolean isSetVibrationTime;
@@ -264,7 +247,7 @@ public class DebugActivity extends AbstractGBActivity {
         editor.apply();
     }
 
-    private void loadTime(){
+    public void loadTime(){
         isSetVibrationTime = appData.getBoolean("SAVE_VIB_TIME", false);
         newStartHour = appData.getString("newStartHour", "");
         newStartMiunite = appData.getString("newStartMinute", "");
@@ -284,6 +267,8 @@ public class DebugActivity extends AbstractGBActivity {
         }else if (loadedCase.equals("FIVE SECOND")){
             HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
 //            currentCase.setText("Current case: Five Second");
+        } else if (loadedCase.equals("NONE MUTABILITY")){
+            HuamiSupport.CASES = HuamiSupport.NONE_MUTABILITY;
         }
     }
 
@@ -307,13 +292,13 @@ public class DebugActivity extends AbstractGBActivity {
 
 
         // Lab cases spinner add
-        String[] cases = {"NONE", "MUTABILITY", "ONE SECOND", "FIVE SECOND"};
+        String[] cases = {"NONE", "MUTABILITY", "ONE SECOND", "FIVE SECOND", "NONE MUTABILITY"};
         ArrayAdapter<String> caseSpinnerArrayAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, cases);
         sendCaseSpinner = findViewById(R.id.sendCaseSpinner);
         sendCaseSpinner.setAdapter(caseSpinnerArrayAdopter);
 
         // 진동 체크 주기 시간 spinner
-        String[] timeCases = {"10", "20", "30","40","50","60"};
+        String[] timeCases = {"1", "2", "10", "20", "30","40","50","60"};
         ArrayAdapter<String> timePeriodSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, timeCases);
         sendVibPeriodSpinner = findViewById(R.id.sendVibPeriod);
         sendVibPeriodSpinner.setAdapter(timePeriodSpinnerAdopter);
@@ -344,14 +329,13 @@ public class DebugActivity extends AbstractGBActivity {
         loadTime();
 
         if (isSetVibrationTime) {
-         // 이전에 시간이 저장된 경우가 있으면 세팅
+            // 이전에 시간이 저장된 경우가 있으면 세팅
             startHour.setText(newStartHour);
             startminute.setText(newStartMiunite);
             endHour.setText(newEndHour);
             endminute.setText(newEndMiunite);
         }
-        LinearLayout develop_layout= findViewById(R.id.develop_layout);
-        develop_layout.setVisibility(View.GONE);
+
 
         setVibrationTime.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -415,8 +399,10 @@ public class DebugActivity extends AbstractGBActivity {
                     HuamiSupport.CASES = HuamiSupport.ONE_SECOND;
                 } else if (selectedState.equals("FIVE SECOND")) {
                     HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
+                } else if (selectedState.equals("NONE MUTABILITY")){
+                    HuamiSupport.CASES = HuamiSupport.NONE_MUTABILITY;
                 }
-            saveTime(1);
+                saveTime(1);
             }
         });
 
@@ -471,15 +457,7 @@ public class DebugActivity extends AbstractGBActivity {
         mGBDeviceAdapter = new GBDeviceAdapterv2(this, deviceList);
 
         deviceListView.setAdapter(this.mGBDeviceAdapter);
-        registerForContextMenu(deviceListView);
 
-        IntentFilter filterLocal = new IntentFilter();
-        filterLocal.addAction(GBApplication.ACTION_LANGUAGE_CHANGE);
-        filterLocal.addAction(GBApplication.ACTION_QUIT);
-        filterLocal.addAction(DeviceManager.ACTION_DEVICES_CHANGED);
-        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filterLocal);
-
-        refreshPairedDevices();
         fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -488,94 +466,6 @@ public class DebugActivity extends AbstractGBActivity {
             }
         });
 
-        /*
-         * Ask for permission to intercept notifications on first run.
-         */
-        Prefs prefs = GBApplication.getPrefs();
-        pesterWithPermissions = prefs.getBoolean("permission_pestering", true);
-
-        Set<String> set = NotificationManagerCompat.getEnabledListenerPackages(this);
-        if (pesterWithPermissions) {
-            if (!set.contains(this.getPackageName())) { // If notification listener access hasn't been granted
-                Intent enableIntent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
-                startActivity(enableIntent);
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            checkAndRequestPermissions();
-        }
-
-        ChangeLog cl = createChangeLog();
-        if (cl.isFirstRun()) {
-            try {
-                cl.getLogDialog().show();
-            } catch (Exception ignored) {
-                GB.toast(getBaseContext(), "Error showing Changelog", Toast.LENGTH_LONG, GB.ERROR);
-
-            }
-        }
-
-        GBApplication.deviceService().start();
-
-        if (GB.isBluetoothEnabled() && deviceList.isEmpty() && Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            startActivity(new Intent(this, DiscoveryActivity.class));
-        } else {
-            GBApplication.deviceService().requestDeviceInfo();
-        }
-
-
-
-
-        new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                while (true) {
-//                    if (HuamiSupport.CONNECTION == 1){
-//                        // 연결이 감지 된 경우 연결 notifi 삭제
-//                        destroyNotification(13009);
-//                    }
-
-                    if (HuamiSupport.HEART_RATE > 0 ){
-                        destroyNotification(13009);
-                    }
-
-                    if (HuamiSupport.IS_NOTIFY) {
-//                        LOG.debug("check Activity >> notify on");
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                createNotification(DEFAULT, 1259, "운동하세요", "어깨 돌리기 10회 이상 실시!", intent);
-                                HuamiSupport.IS_NOTIFY = false;
-                            }
-                        });
-                    } else if (HuamiSupport.WEAR_NOTIFY_TIMER % 60 == 0) {
-                        // 60초 마다 워치 착용 여부 감지
-                        LOG.debug("check Activity >> notify: " + HuamiSupport.WEAR_NOTIFY_TIMER);
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                createNotification(DEFAULT, 13009, "워치를 착용 및 연결해 주세요", "워치 착용(및 연결)이 감지되지 않았습니다. 워치를 착용해주세요", intent);
-                                HuamiSupport.WEAR_NOTIFY_TIMER = 1;
-                            }
-                        });
-                    } else {
-//                        LOG.debug("check Activity >> notify pending");
-                        if (HuamiSupport.DESTROY_NOTIFICATION) {
-                            destroyNotification(1259);
-                            HuamiSupport.DESTROY_NOTIFICATION = false;
-                        }
-                    }
-                    try {
-                        Thread.sleep(100);
-
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }).start();
 
     }
 
@@ -712,118 +602,6 @@ public class DebugActivity extends AbstractGBActivity {
         super.onDestroy();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
         unregisterReceiver(mReceiver);
-    }
-    //add for research
-    private void refreshPairedDevices() {
-        mGBDeviceAdapter.notifyDataSetChanged();
-    }
-    @TargetApi(Build.VERSION_CODES.M)
-    private void checkAndRequestPermissions() {
-        List<String> wantedPermissions = new ArrayList<>();
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED)
-            wantedPermissions.add(Manifest.permission.BLUETOOTH);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_DENIED)
-            wantedPermissions.add(Manifest.permission.BLUETOOTH_ADMIN);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_DENIED)
-            wantedPermissions.add(Manifest.permission.READ_CONTACTS);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_DENIED)
-            wantedPermissions.add(Manifest.permission.CALL_PHONE);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_DENIED)
-            wantedPermissions.add(Manifest.permission.READ_CALL_LOG);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_DENIED)
-            wantedPermissions.add(Manifest.permission.READ_PHONE_STATE);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.PROCESS_OUTGOING_CALLS) == PackageManager.PERMISSION_DENIED)
-            wantedPermissions.add(Manifest.permission.PROCESS_OUTGOING_CALLS);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_DENIED)
-            wantedPermissions.add(Manifest.permission.RECEIVE_SMS);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_DENIED)
-            wantedPermissions.add(Manifest.permission.READ_SMS);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_DENIED)
-            wantedPermissions.add(Manifest.permission.SEND_SMS);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED)
-            wantedPermissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_DENIED)
-            wantedPermissions.add(Manifest.permission.READ_CALENDAR);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED)
-            wantedPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED)
-            wantedPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
-
-        try {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.MEDIA_CONTENT_CONTROL) == PackageManager.PERMISSION_DENIED)
-                wantedPermissions.add(Manifest.permission.MEDIA_CONTENT_CONTROL);
-        } catch (Exception ignored) {
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (pesterWithPermissions) {
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_DENIED) {
-                    wantedPermissions.add(Manifest.permission.ANSWER_PHONE_CALLS);
-                }
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_DENIED) {
-                wantedPermissions.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION);
-            }
-        }
-
-        if (!wantedPermissions.isEmpty()) {
-            Prefs prefs = GBApplication.getPrefs();
-            // If this is not the first run, we can rely on
-            // shouldShowRequestPermissionRationale(String permission)
-            // and ignore permissions that shouldn't or can't be requested again
-            if (prefs.getBoolean("permissions_asked", false)) {
-                // Don't request permissions that we shouldn't show a prompt for
-                // e.g. permissions that are "Never" granted by the user or never granted by the system
-                Set<String> shouldNotAsk = new HashSet<>();
-                for (String wantedPermission : wantedPermissions) {
-                    if (!shouldShowRequestPermissionRationale(wantedPermission)) {
-                        shouldNotAsk.add(wantedPermission);
-                    }
-                }
-                wantedPermissions.removeAll(shouldNotAsk);
-            } else {
-                // Permissions have not been asked yet, but now will be
-                prefs.getPreferences().edit().putBoolean("permissions_asked", true).apply();
-            }
-
-            if (!wantedPermissions.isEmpty()) {
-                GB.toast(this, getString(R.string.permission_granting_mandatory), Toast.LENGTH_LONG, GB.ERROR);
-                ActivityCompat.requestPermissions(this, wantedPermissions.toArray(new String[0]), 0);
-                GB.toast(this, getString(R.string.permission_granting_mandatory), Toast.LENGTH_LONG, GB.ERROR);
-            }
-        }
-
-        /* In order to be able to set ringer mode to silent in GB's PhoneCallReceiver
-           the permission to access notifications is needed above Android M
-           ACCESS_NOTIFICATION_POLICY is also needed in the manifest */
-        if (pesterWithPermissions) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (!((NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE)).isNotificationPolicyAccessGranted()) {
-                    GB.toast(this, getString(R.string.permission_granting_mandatory), Toast.LENGTH_LONG, GB.ERROR);
-                    startActivity(new Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS));
-                }
-            }
-        }
-
-        // HACK: On Lineage we have to do this so that the permission dialog pops up
-        if (fakeStateListener == null) {
-            fakeStateListener = new PhoneStateListener();
-            TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-            telephonyManager.listen(fakeStateListener, PhoneStateListener.LISTEN_CALL_STATE);
-            telephonyManager.listen(fakeStateListener, PhoneStateListener.LISTEN_NONE);
-        }
-    }
-    private ChangeLog createChangeLog() {
-        String css = ChangeLog.DEFAULT_CSS;
-        css += "body { "
-                + "color: " + AndroidUtils.getTextColorHex(getBaseContext()) + "; "
-                + "background-color: " + AndroidUtils.getBackgroundColorHex(getBaseContext()) + ";" +
-                "}";
-        return new ChangeLog(this, css);
     }
 
 }
