@@ -45,7 +45,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:text="STEP\n0"
+                android:text="운동 횟수\n0"
                 android:textSize="100px"
                 grid:layout_columnSpan="4"
                 grid:layout_gravity="fill_horizontal" />

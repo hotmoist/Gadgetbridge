@@ -170,7 +170,7 @@ public class DebugActivity extends AbstractGBActivity {
 //                    HRvalText.setText("HR: " + HuamiSupport.HEART_RATE + "bpm");
 //                    StepText.setText("TOTAL STEP : " + HuamiSupport.TOTAL_STEP);
                     timePeriod.setText("경과 시간: " + (int) (HuamiSupport.STEP_TIMER / 60) + ":" + (HuamiSupport.STEP_TIMER) % 60+ " / "+ (HuamiSupport.RESET_TIME/60)+":00");
-                    inTimeStep.setText("STEP\n" + HuamiSupport.IN_TIME_STEP);
+                    inTimeStep.setText("운동 횟수\n" + HuamiSupport.IN_TIME_STEP);
                     activationTimePeriod.setText("설정 활동 시간: " + newStartHour +":" + newStartMiunite + " ~ " + newEndHour +":" + newEndMiunite);
                     vibrationTimePeriod.setText("설정 주기 간격: " + (HuamiSupport.RESET_TIME/60));
                     if (HuamiSupport.CASES == HuamiSupport.NONE) {
