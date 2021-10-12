@@ -169,12 +169,11 @@
                             android:layout_height="wrap_content"
                             android:text="시작시간"/>
 
-                        <EditText
-                            android:id="@+id/startHour"
+                        <Spinner
+                            android:id="@+id/startHourSpinner"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:hint="0~23"
-                            grid:layout_gravity="fill_horizontal" />
+                            android:layout_gravity="fill_horizontal" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -182,12 +181,12 @@
                             android:text="시"
                             grid:layout_columnSpan="1" />
 
-                        <EditText
-                            android:id="@+id/startMinute"
+                        <Spinner
+                            android:id="@+id/startMinuteSpinner"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:hint="0~59"
-                            grid:layout_gravity="fill_horizontal" />
+                            android:layout_gravity="fill_horizontal"
+                            />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -195,6 +194,7 @@
                             android:text="분"
                             grid:layout_columnSpan="1" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_height="wrap_content"
                         android:layout_width="wrap_content">
@@ -204,15 +204,13 @@
                             android:text="종료시간"
                             grid:layout_columnSpan="4" />
 
-                        <EditText
-                            android:id="@+id/endHour"
+                        <Spinner
+                            android:id="@+id/endHourSpinner"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:hint="0~23"
-                            android:maxLength="2"
-                            android:singleLine="true"
-                            grid:layout_columnSpan="1"
-                            grid:layout_gravity="fill_horizontal" />
+                            grid:layout_columnSpan = "1"
+                            android:layout_gravity="fill_horizontal"
+                            />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -220,15 +218,13 @@
                             android:text="시"
                             grid:layout_columnSpan="1" />
 
-                        <EditText
-                            android:id="@+id/endMinute"
+                        <Spinner
+                            android:id="@+id/endMinuteSpinner"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:hint="0~59"
-                            android:maxLength="2"
-                            android:singleLine="true"
                             grid:layout_columnSpan="1"
-                            grid:layout_gravity="fill_horizontal" />
+                            android:layout_gravity="fill_horizontal"
+                            />
 
                         <TextView
                             android:layout_width="wrap_content"

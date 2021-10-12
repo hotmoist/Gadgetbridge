@@ -110,6 +110,10 @@ public class DebugActivity extends AbstractGBActivity {
 
     private Spinner sendCaseSpinner;
     private Spinner sendVibPeriodSpinner;
+    private Spinner sendStartHourSpinner;
+    private Spinner sendStartMinuteSpinner;
+    private Spinner sendEndHourSpinner;
+    private Spinner sendEndMinuteSpinner;
 
     private void handleRealtimeSample(Serializable extra) {  // void -> int 형으로 변환
         if (extra instanceof ActivitySample) {
@@ -183,10 +187,6 @@ public class DebugActivity extends AbstractGBActivity {
     TextView inTimeStep;
     TextView currentCase;
     TextView activationTimePeriod;
-    EditText startHour;
-    EditText startminute;
-    EditText endHour;
-    EditText endminute;
     Button setVibrationTime;
 
     TextView vibrationTimePeriod;
@@ -239,10 +239,10 @@ public class DebugActivity extends AbstractGBActivity {
 
         else if(t ==2) {
             // t == 2일때 활동 시간 지정정            editor.putBoolean("SAVE_VIB_TIME", true);
-            editor.putString("newStartHour", startHour.getText().toString().trim());
-            editor.putString("newStartMinute", startminute.getText().toString().trim());
-            editor.putString("newEndHour", endHour.getText().toString().trim());
-            editor.putString("newEndMinute", endminute.getText().toString().trim());
+//            editor.putString("newStartHour", startHour.getText().toString().trim());
+//            editor.putString("newStartMinute", startminute.getText().toString().trim());
+//            editor.putString("newEndHour", endHour.getText().toString().trim());
+//            editor.putString("newEndMinute", endminute.getText().toString().trim());
         }
         editor.apply();
     }
@@ -303,26 +303,57 @@ public class DebugActivity extends AbstractGBActivity {
         sendVibPeriodSpinner = findViewById(R.id.sendVibPeriod);
         sendVibPeriodSpinner.setAdapter(timePeriodSpinnerAdopter);
 
+
+        String[] hourCases = new String[24];
+        String[] minuteCases = new String[60];
+
+        for(int i = 0; i < hourCases.length; i++){
+            hourCases[i] = i +"";
+        }
+
+        for(int i = 0; i <minuteCases.length; i++){
+            minuteCases[i] = i + "";
+        }
+
+
+        // time - start hour spinner
+        ArrayAdapter<String> startHourSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, hourCases);
+        sendStartHourSpinner = findViewById(R.id.startHourSpinner);
+        sendStartHourSpinner.setAdapter(startHourSpinnerAdopter);
+
+        // time - start minute spinner
+        ArrayAdapter<String> startMinuteSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, minuteCases);
+        sendStartMinuteSpinner = findViewById(R.id.startMinuteSpinner);
+        sendStartMinuteSpinner.setAdapter(startMinuteSpinnerAdopter);
+
+        // time - end hour spinner
+        ArrayAdapter<String> endHourSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, hourCases);
+        sendEndHourSpinner = findViewById(R.id.endHourSpinner);
+        sendEndHourSpinner.setAdapter(endHourSpinnerAdopter);
+
+        // time - end minute spinner
+        ArrayAdapter<String> endMinuteSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, minuteCases);
+        sendEndMinuteSpinner = findViewById(R.id.endMinuteSpinner);
+        sendEndMinuteSpinner.setAdapter(endMinuteSpinnerAdopter);
+
+
+
 //        HRvalText = (TextView) findViewById(R.id.realtimeHR);
 //        StepText = (TextView) findViewById(R.id.realtimeSteps);
         timePeriod = (TextView) findViewById(R.id.timePeriod);
         inTimeStep = (TextView) findViewById(R.id.inTimeStep);
         currentCase = (TextView) findViewById(R.id.currentCase);
 
-        startHour = findViewById(R.id.startHour);
-        startminute = findViewById(R.id.startMinute);
-        endHour = findViewById(R.id.endHour);
-        endminute = findViewById(R.id.endMinute);
         setVibrationTime = findViewById(R.id.setVibrationTime);
         activationTimePeriod = findViewById(R.id.activationTimePeriod);
 
         vibrationTimePeriod = findViewById(R.id.vibrationTimePeriod);
 
         // 커서 부분 제거
-        startHour.setCursorVisible(false);
-        startminute.setCursorVisible(false);
-        endHour.setCursorVisible(false);
-        endminute.setCursorVisible(false);
+//        startHour.setCursorVisible(false);
+//        startminute.setCursorVisible(false);
+//        endHour.setCursorVisible(false);
+//        endminute.setCursorVisible(false);
 
         // 시작 시간과 종료시간이 지정된 경우
         appData = getSharedPreferences("appData", MODE_PRIVATE);
@@ -330,10 +361,10 @@ public class DebugActivity extends AbstractGBActivity {
 
         if (isSetVibrationTime) {
             // 이전에 시간이 저장된 경우가 있으면 세팅
-            startHour.setText(newStartHour);
-            startminute.setText(newStartMiunite);
-            endHour.setText(newEndHour);
-            endminute.setText(newEndMiunite);
+//            startHour.setText(newStartHour);
+//            startminute.setText(newStartMiunite);
+//            endHour.setText(newEndHour);
+//            endminute.setText(newEndMiunite);
         }
 
 
@@ -343,10 +374,10 @@ public class DebugActivity extends AbstractGBActivity {
                 String startTime = null;
                 String endTime = null;
 
-                newStartHour = startHour.getText().toString();
-                newStartMiunite = startminute.getText().toString();
-                newEndHour = endHour.getText().toString();
-                newEndMiunite = endminute.getText().toString();
+                newStartHour = (String) sendStartHourSpinner.getSelectedItem();
+                newStartMiunite = (String) sendStartMinuteSpinner.getSelectedItem();
+                newEndHour = (String) sendEndHourSpinner.getSelectedItem();
+                newEndMiunite = (String) sendEndMinuteSpinner.getSelectedItem();
 
 
                 if (
@@ -354,19 +385,19 @@ public class DebugActivity extends AbstractGBActivity {
                                 && (!newEndHour.equals("") && !newEndMiunite.equals("")) && (newEndHour.length() < 3 && newEndMiunite.length() < 3 && Integer.parseInt(newEndHour) < 24 && Integer.parseInt(newEndMiunite) < 60)
                                 && (Integer.parseInt(newEndHour) > Integer.parseInt(newStartHour))
                 ) {
-                    if (startHour.getText().length() == 1) {
-                        newStartHour = '0' + startHour.getText().toString();
+                    if (newStartHour.length() == 1) {
+                        newStartHour = '0' + newStartHour;
                     }
-                    if (startminute.getText().length() == 1) {
-                        newStartMiunite = '0' + startminute.getText().toString();
+                    if (newStartMiunite.length() == 1) {
+                        newStartMiunite = '0' + newStartMiunite;
                     }
                     startTime = newStartHour + newStartMiunite + "00";
 
-                    if (endHour.getText().length() == 1) {
-                        newEndHour = '0' + endHour.getText().toString();
+                    if (newEndHour.length() == 1) {
+                        newEndHour = '0' + newEndHour;
                     }
-                    if (endminute.getText().length() == 1) {
-                        newEndMiunite = '0' + endminute.getText().toString();
+                    if (newEndMiunite.length() == 1) {
+                        newEndMiunite = '0' + newEndMiunite;
                     }
                     endTime = newEndHour + newEndMiunite + "00";
 
@@ -422,30 +453,6 @@ public class DebugActivity extends AbstractGBActivity {
 
         Intent intent = new Intent(this, ControlCenterv2.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
-//        Button sendEmail = findViewById(R.id.sendEmail);
-//        sendEmail.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent email = new Intent(Intent.ACTION_SEND);
-//                email.setType("plain/text");
-//                String[] address = {"ljy9805@gmail.com"};
-//                email.putExtra(Intent.EXTRA_EMAIL, address);
-//                email.putExtra(Intent.EXTRA_SUBJECT, "Daily Report");
-//                email.putExtra(Intent.EXTRA_TEXT, "하루동안 알람을 받은 횟수는 몇회입니까?\n1. 0~2회 \n2.3~4회\n5회이상\n\n실험을 하면서 기능적으로 문제가 되었던 부분이 있으면 작성해주세요.");
-//                startActivity(email);
-//            }
-//        });
-
-//        Button dataTest = findViewById(R.id.sendDataBase);
-//        dataTest.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                InsertDB insertDB = new InsertDB(DebugActivity.this);
-//                insertDB.insertData("1", "1", "1", "1");
-//            }
-//        });
-
 
         deviceManager = ((GBApplication) getApplication()).getDeviceManager();
 
