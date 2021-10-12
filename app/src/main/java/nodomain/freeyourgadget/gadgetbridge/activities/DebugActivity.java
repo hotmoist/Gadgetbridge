@@ -51,8 +51,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +70,6 @@ import nodomain.freeyourgadget.gadgetbridge.model.DeviceService;
 import nodomain.freeyourgadget.gadgetbridge.util.GB;
 import nodomain.freeyourgadget.gadgetbridge.util.WidgetPreferenceStorage;
 
-import nodomain.freeyourgadget.gadgetbridge.service.devices.miband.RealtimeSamplesSupport;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huami.HuamiSupport;
 
 
@@ -167,6 +164,8 @@ public class DebugActivity extends AbstractGBActivity {
                         currentCase.setText("Current case: One Second");
                     } else if (HuamiSupport.CASES == HuamiSupport.FIVE_SECOND) {
                         currentCase.setText("Current case: Five Second");
+                    } else if (HuamiSupport.CASES == HuamiSupport.NONE_MUTABILITY){
+                        currentCase.setText("current case: None Mutability");
                     }
                     break;
             }
@@ -246,7 +245,7 @@ public class DebugActivity extends AbstractGBActivity {
         editor.apply();
     }
 
-    private void loadTime(){
+    public void loadTime(){
         isSetVibrationTime = appData.getBoolean("SAVE_VIB_TIME", false);
         newStartHour = appData.getString("newStartHour", "");
         newStartMiunite = appData.getString("newStartMinute", "");
@@ -266,6 +265,8 @@ public class DebugActivity extends AbstractGBActivity {
         }else if (loadedCase.equals("FIVE SECOND")){
             HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
 //            currentCase.setText("Current case: Five Second");
+        } else if (loadedCase.equals("NONE MUTABILITY")){
+            HuamiSupport.CASES = HuamiSupport.NONE_MUTABILITY;
         }
     }
     
@@ -289,13 +290,13 @@ public class DebugActivity extends AbstractGBActivity {
 
 
         // Lab cases spinner add
-        String[] cases = {"NONE", "MUTABILITY", "ONE SECOND", "FIVE SECOND"};
+        String[] cases = {"NONE", "MUTABILITY", "ONE SECOND", "FIVE SECOND", "NONE MUTABILITY"};
         ArrayAdapter<String> caseSpinnerArrayAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, cases);
         sendCaseSpinner = findViewById(R.id.sendCaseSpinner);
         sendCaseSpinner.setAdapter(caseSpinnerArrayAdopter);
 
         // 진동 체크 주기 시간 spinner
-        String[] timeCases = {"10", "20", "30","40","50","60"};
+        String[] timeCases = {"1", "2", "10", "20", "30","40","50","60"};
         ArrayAdapter<String> timePeriodSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, timeCases);
         sendVibPeriodSpinner = findViewById(R.id.sendVibPeriod);
         sendVibPeriodSpinner.setAdapter(timePeriodSpinnerAdopter);
@@ -396,6 +397,8 @@ public class DebugActivity extends AbstractGBActivity {
                     HuamiSupport.CASES = HuamiSupport.ONE_SECOND;
                 } else if (selectedState.equals("FIVE SECOND")) {
                     HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
+                } else if (selectedState.equals("NONE MUTABILITY")){
+                    HuamiSupport.CASES = HuamiSupport.NONE_MUTABILITY;
                 }
             saveTime(1);
             }

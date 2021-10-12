@@ -274,6 +274,12 @@ public class ControlCenterv2 extends AppCompatActivity
                                 HuamiSupport.WEAR_NOTIFY_TIMER = 1;
                             }
                         });
+                        try {
+                            Thread.sleep(10);
+
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     } else {
 //                        LOG.debug("check Activity >> notify pending");
                         if (HuamiSupport.DESTROY_NOTIFICATION) {
@@ -281,15 +287,17 @@ public class ControlCenterv2 extends AppCompatActivity
                             HuamiSupport.DESTROY_NOTIFICATION = false;
                         }
                     }
-                    try {
-                        Thread.sleep(100);
-
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+//                    try {
+//                        Thread.sleep(10);
+//
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
                 }
             }
         }).start();
+
+        
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
