@@ -44,6 +44,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -290,7 +291,7 @@ public class DebugActivity extends AbstractGBActivity {
     private DeviceManager deviceManager;
     private GBDeviceAdapterv2 mGBDeviceAdapter;
     private RecyclerView deviceListView;
-    private Button fab;
+    private FloatingActionButton fab;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -349,7 +350,8 @@ public class DebugActivity extends AbstractGBActivity {
             endHour.setText(newEndHour);
             endminute.setText(newEndMiunite);
         }
-
+        LinearLayout develop_layout= findViewById(R.id.develop_layout);
+        develop_layout.setVisibility(View.GONE);
 
         setVibrationTime.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -435,19 +437,19 @@ public class DebugActivity extends AbstractGBActivity {
         Intent intent = new Intent(this, ControlCenterv2.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
-        Button sendEmail = findViewById(R.id.sendEmail);
-        sendEmail.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent email = new Intent(Intent.ACTION_SEND);
-                email.setType("plain/text");
-                String[] address = {"ljy9805@gmail.com"};
-                email.putExtra(Intent.EXTRA_EMAIL, address);
-                email.putExtra(Intent.EXTRA_SUBJECT, "Daily Report");
-                email.putExtra(Intent.EXTRA_TEXT, "하루동안 알람을 받은 횟수는 몇회입니까?\n1. 0~2회 \n2.3~4회\n5회이상\n\n실험을 하면서 기능적으로 문제가 되었던 부분이 있으면 작성해주세요.");
-                startActivity(email);
-            }
-        });
+//        Button sendEmail = findViewById(R.id.sendEmail);
+//        sendEmail.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent email = new Intent(Intent.ACTION_SEND);
+//                email.setType("plain/text");
+//                String[] address = {"ljy9805@gmail.com"};
+//                email.putExtra(Intent.EXTRA_EMAIL, address);
+//                email.putExtra(Intent.EXTRA_SUBJECT, "Daily Report");
+//                email.putExtra(Intent.EXTRA_TEXT, "하루동안 알람을 받은 횟수는 몇회입니까?\n1. 0~2회 \n2.3~4회\n5회이상\n\n실험을 하면서 기능적으로 문제가 되었던 부분이 있으면 작성해주세요.");
+//                startActivity(email);
+//            }
+//        });
 
 //        Button dataTest = findViewById(R.id.sendDataBase);
 //        dataTest.setOnClickListener(new View.OnClickListener() {

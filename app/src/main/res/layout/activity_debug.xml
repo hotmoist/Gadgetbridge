@@ -1,29 +1,27 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:grid="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:layout_gravity="top"
+    android:gravity="top">
 
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="center">
+        android:layout_gravity="top">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="center"
+            android:layout_gravity="top"
             android:gravity="center"
-            android:layout_marginTop="70dp"
             android:orientation="vertical">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/deviceListView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_alignParentTop="true"
-                android:layout_centerHorizontal="true"
-                android:divider="@null" />
+                android:layout_height="match_parent" />
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -32,28 +30,27 @@
                     android:id="@+id/timePeriod"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="10dp"
+                    android:paddingStart="10dp"
                     android:gravity="left"
                     android:text="경과 시간: 0"
-                    android:textSize="30dp"
+                    android:textSize="30sp"
                     grid:layout_columnSpan="4"
                     grid:layout_gravity="fill_horizontal" />
-
-
-            <TextView
-                android:id="@+id/inTimeStep"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="운동 횟수\n0"
-                android:textSize="100px"
-                grid:layout_columnSpan="4"
-                grid:layout_gravity="fill_horizontal" />
+                <TextView
+                    android:id="@+id/inTimeStep"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="운동 횟수\n0"
+                    android:textSize="100px"
+                    grid:layout_columnSpan="4"
+                    grid:layout_gravity="fill_horizontal" />
 
             </LinearLayout>
 
 
             <LinearLayout
+                android:id="@+id/develop_layout"
                 android:layout_height="match_parent"
                 android:layout_width="match_parent"
                 android:gravity="center"
@@ -66,6 +63,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:orientation="horizontal">
+
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -152,9 +150,10 @@
                 />
             <LinearLayout
                 android:layout_height="match_parent"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:gravity="center"
                 android:orientation="horizontal">
+
                 <LinearLayout
                     android:layout_height="match_parent"
                     android:layout_width="wrap_content"
@@ -237,33 +236,36 @@
                             grid:layout_columnSpan="1" />
                     </LinearLayout>
                 </LinearLayout>
-
+                <Button
+                    android:id="@+id/setVibrationTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="시간 설정"
+                    android:gravity="center"
+                    grid:layout_gravity="center"
+                    android:layout_margin="15dp"/>
             </LinearLayout>
             <LinearLayout
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:layout_width="match_parent"
                 android:orientation="vertical">
-                <Button
-                    android:id="@+id/setVibrationTime"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="시간 설정"
-                    android:gravity="center"
-                    grid:layout_gravity="fill_horizontal" />
-                <Button
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/fab"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentEnd="true"
                     android:layout_gravity="bottom|end"
-                    android:text="주변 기기 찾기" />
-                <Button
-                    android:id="@+id/sendEmail"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="send email"
-                    grid:layout_columnSpan="4"
-                    grid:layout_gravity="fill_horizontal" />
+                    android:src="@drawable/ic_add"
+                    android:layout_margin="16dp" />
+<!--                <Button-->
+<!--                    android:id="@+id/sendEmail"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="send email"-->
+<!--                    grid:layout_columnSpan="4"-->
+<!--                    grid:layout_gravity="fill_horizontal" />-->
             </LinearLayout>
 <!--          시간 설정 -->
 
