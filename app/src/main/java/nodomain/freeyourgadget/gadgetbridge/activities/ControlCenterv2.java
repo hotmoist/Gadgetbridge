@@ -237,60 +237,60 @@ public class ControlCenterv2 extends AppCompatActivity
         /**
          * added for lab research
          */
-        mHandler = new Handler();
-        createNotificationChannel(DEFAULT, "default channel", NotificationManager.IMPORTANCE_HIGH);
-        Intent intent = new Intent(this, ControlCenterv2.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
-        new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                while (true) {
-//                    if (HuamiSupport.CONNECTION == 1){
-//                        // 연결이 감지 된 경우 연결 notifi 삭제
+//        mHandler = new Handler();
+//        createNotificationChannel(DEFAULT, "default channel", NotificationManager.IMPORTANCE_HIGH);
+//        Intent intent = new Intent(this, DebugActivity.class);
+//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//
+//        new Thread(new Runnable() {
+//
+//            @Override
+//            public void run() {
+//                while (true) {
+////                    if (HuamiSupport.CONNECTION == 1){
+////                        // 연결이 감지 된 경우 연결 notifi 삭제
+////                        destroyNotification(13009);
+////                    }
+//
+//                    if (HuamiSupport.HEART_RATE > 0 ){
 //                        destroyNotification(13009);
 //                    }
-
-                    if (HuamiSupport.HEART_RATE > 0 ){
-                        destroyNotification(13009);
-                    }
-
-                    if (HuamiSupport.IS_NOTIFY) {
-//                        LOG.debug("check Activity >> notify on");
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                createNotification(DEFAULT, 1259, "운동하세요", "어깨 돌리기 10회 이상 실시!", intent);
-                                HuamiSupport.IS_NOTIFY = false;
-                            }
-                        });
-                    } else if (HuamiSupport.WEAR_NOTIFY_TIMER % 60 == 0) {
-                        // 60초 마다 워치 착용 여부 감지
-                        LOG.debug("check Activity >> notify: " + HuamiSupport.WEAR_NOTIFY_TIMER);
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                createNotification(DEFAULT, 13009, "워치를 착용 및 연결해 주세요", "워치 착용(및 연결)이 감지되지 않았습니다. 워치를 착용해주세요", intent);
-                                HuamiSupport.WEAR_NOTIFY_TIMER = 1;
-                            }
-                        });
-                    } else {
-//                        LOG.debug("check Activity >> notify pending");
-                        if (HuamiSupport.DESTROY_NOTIFICATION) {
-                            destroyNotification(1259);
-                            HuamiSupport.DESTROY_NOTIFICATION = false;
-                        }
-                    }
-                    try {
-                        Thread.sleep(100);
-
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }).start();
+//
+//                    if (HuamiSupport.IS_NOTIFY) {
+////                        LOG.debug("check Activity >> notify on");
+//                        mHandler.post(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                createNotification(DEFAULT, 1259, "운동하세요", "어깨 돌리기 10회 이상 실시!", intent);
+//                                HuamiSupport.IS_NOTIFY = false;
+//                            }
+//                        });
+//                    } else if (HuamiSupport.WEAR_NOTIFY_TIMER % 60 == 0) {
+//                        // 60초 마다 워치 착용 여부 감지
+//                        LOG.debug("check Activity >> notify: " + HuamiSupport.WEAR_NOTIFY_TIMER);
+//                        mHandler.post(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                createNotification(DEFAULT, 13009, "워치를 착용 및 연결해 주세요", "워치 착용(및 연결)이 감지되지 않았습니다. 워치를 착용해주세요", intent);
+//                                HuamiSupport.WEAR_NOTIFY_TIMER = 1;
+//                            }
+//                        });
+//                    } else {
+////                        LOG.debug("check Activity >> notify pending");
+//                        if (HuamiSupport.DESTROY_NOTIFICATION) {
+//                            destroyNotification(1259);
+//                            HuamiSupport.DESTROY_NOTIFICATION = false;
+//                        }
+//                    }
+//                    try {
+//                        Thread.sleep(100);
+//
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        }).start();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
