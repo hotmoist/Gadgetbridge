@@ -15,6 +15,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.service.devices.huami;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Context;
@@ -23,8 +27,11 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import net.e175.klaus.solarpositioning.DeltaT;
@@ -140,6 +147,7 @@ import nodomain.freeyourgadget.gadgetbridge.util.StringUtils;
 import nodomain.freeyourgadget.gadgetbridge.util.Version;
 
 
+import static android.content.Context.NOTIFICATION_SERVICE;
 import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_ALLOW_HIGH_MTU;
 import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_BT_CONNECTED_ADVERTISEMENT;
 import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_DATEFORMAT;
@@ -1884,6 +1892,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
 //        }
     }
 
+    public static boolean connect=true;
     private RealtimeSamplesSupport getRealtimeSamplesSupport() {
 
         if (realtimeSamplesSupport == null) {
@@ -1893,12 +1902,18 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                     if (!HuamiSupport.super.isConnected()) {
                         // if disconnected -> notify for connection and exit the program for resource
                         HEART_RATE = 0;
+//                        connect=false;
                         WEAR_NOTIFY_TIMER = 60;
                         try {
-                            Thread.sleep(100);
-                            WEAR_NOTIFY_TIMER = 1;
                             Thread.sleep(1000);
-
+                            WEAR_NOTIFY_TIMER = 1;
+                            NotificationSpec notificationSpec = new NotificationSpec();
+                            notificationSpec.phoneNumber = "연결하세요";
+                            notificationSpec.body = "연결하세요";
+                            notificationSpec.sender =  "연결하세요";
+                            notificationSpec.subject =  "연결하세요";
+                            GBApplication.deviceService().onNotification(notificationSpec);
+                            Thread.sleep(2000);
                         } catch (InterruptedException e) {
                         }
                         System.exit(0);

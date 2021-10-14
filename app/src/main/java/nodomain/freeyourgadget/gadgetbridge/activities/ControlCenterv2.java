@@ -149,6 +149,7 @@ public class ControlCenterv2 extends AppCompatActivity
         mGBDeviceAdapter = new GBDeviceAdapterv2(this, deviceList);
 
         deviceListView.setAdapter(this.mGBDeviceAdapter);
+        startActivity(new Intent(this, DebugActivity.class));
 
         fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
