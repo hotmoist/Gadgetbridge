@@ -6,8 +6,10 @@ import com.android.volley.toolbox.StringRequest;
 import java.util.HashMap;
 import java.util.Map;
 
+import nodomain.freeyourgadget.gadgetbridge.activities.option;
+
 public class RegisterRequest extends StringRequest {
-    final static private String URL= "https://ljy897.cafe24.com/UserRegister3.php";
+    final static private String URL= option.getUrl();
     private Map<String,String> parameters;
 
 

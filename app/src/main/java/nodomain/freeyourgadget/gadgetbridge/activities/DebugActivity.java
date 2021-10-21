@@ -104,8 +104,10 @@ import static android.content.Intent.EXTRA_SUBJECT;
 import static nodomain.freeyourgadget.gadgetbridge.util.GB.NOTIFICATION_CHANNEL_ID;
 
 public class DebugActivity extends AbstractGBActivity {
-
-
+//                (selectedState.equals("MUTABILITY"))
+//                (selectedState.equals("ONE SECOND"))
+//                (selectedState.equals("FIVE SECOND"))
+//                (selectedState.equals("NON MUTABILITY"))
     public static boolean TIMER_UI = false;
     private static final Logger LOG = LoggerFactory.getLogger(DebugActivity.class);
 
@@ -466,21 +468,20 @@ public class DebugActivity extends AbstractGBActivity {
             @Override
             public void onClick(View v) {
                 selectedState = (String) sendCaseSpinner.getSelectedItem();
-                if (selectedState.equals("NONE")) {
-                    HuamiSupport.CASES = HuamiSupport.NONE;
-                } else if (selectedState.equals("MUTABILITY")) {
-                    HuamiSupport.CASES = HuamiSupport.MUTABILITY;
-                } else if (selectedState.equals("ONE SECOND")) {
-                    HuamiSupport.CASES = HuamiSupport.ONE_SECOND;
-                } else if (selectedState.equals("FIVE SECOND")) {
-                    HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
-                }else if (selectedState.equals("NON MUTABILITY")){
-                    HuamiSupport.CASES = HuamiSupport.NONE_MUTABILITY;
-                }
+//                if (selectedState.equals("NONE")) {
+//                    HuamiSupport.CASES = HuamiSupport.NONE;
+//                } else if (selectedState.equals("MUTABILITY")) {
+//                    HuamiSupport.CASES = HuamiSupport.MUTABILITY;
+//                } else if (selectedState.equals("ONE SECOND")) {
+//                    HuamiSupport.CASES = HuamiSupport.ONE_SECOND;
+//                } else if (selectedState.equals("FIVE SECOND")) {
+//                    HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
+//                }else if (selectedState.equals("NON MUTABILITY")){
+//                    HuamiSupport.CASES = HuamiSupport.NONE_MUTABILITY;
+//                }
                 saveTime(1);
             }
         });
-
         Button setPeriodButton = findViewById(R.id.setVibPeriod);
         setPeriodButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -660,6 +661,10 @@ public class DebugActivity extends AbstractGBActivity {
             timerImage.startAnimation(anim);
             TIMER_UI=true;
         }
+
+
+        HuamiSupport.CASES=option.getCase();
+        HuamiSupport.RESET_TIME=option.getTime();
     }
 
     void notiTimer() {

@@ -13,6 +13,8 @@ import org.json.JSONObject;
 import java.net.URI;
 import java.util.Calendar;
 
+import nodomain.freeyourgadget.gadgetbridge.activities.option;
+
 public class InsertDB {
     private androidx.appcompat.app.AlertDialog dialog;
     String time = "test1";
@@ -75,7 +77,7 @@ public class InsertDB {
             queue.add(registerRequest);
 //            registerRequest.wait(100);
             Thread.sleep(100);
-            queue.getCache().invalidate("https://ljy897.cafe24.com/UserRegister3.php",true);
+            queue.getCache().invalidate(option.getUrl(),true);
             registerRequest.cancel();
             queue.stop();
 
