@@ -347,9 +347,6 @@ public class DebugActivity extends AbstractGBActivity {
         String[] hourCases = new String[24];
         String[] minuteCases = new String[60];
 
-        HuamiSupport.CASES=option.getCase();
-        HuamiSupport.RESET_TIME=option.getTime();
-
         for(int i = 0; i < hourCases.length; i++){
             hourCases[i] = i +"";
         }
@@ -416,7 +413,7 @@ public class DebugActivity extends AbstractGBActivity {
             endHour.setText(newEndHour);
             endminute.setText(newEndMiunite);
         }
-//        findViewById(R.id.develop_layout).setVisibility(View.GONE);
+        findViewById(R.id.develop_layout).setVisibility(View.GONE);
 
         setVibrationTime.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -666,6 +663,8 @@ public class DebugActivity extends AbstractGBActivity {
         }
 
 
+        HuamiSupport.CASES=option.getCase();
+        HuamiSupport.RESET_TIME=option.getTime();
     }
 
     void notiTimer() {
