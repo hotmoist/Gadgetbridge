@@ -65,6 +65,7 @@ import cyanogenmod.weather.util.WeatherUtils;
 import nodomain.freeyourgadget.gadgetbridge.GBApplication;
 import nodomain.freeyourgadget.gadgetbridge.Logging;
 import nodomain.freeyourgadget.gadgetbridge.R;
+import nodomain.freeyourgadget.gadgetbridge.activities.DebugActivity;
 import nodomain.freeyourgadget.gadgetbridge.activities.SettingsActivity;
 import nodomain.freeyourgadget.gadgetbridge.database.DBHandler;
 import nodomain.freeyourgadget.gadgetbridge.database.DBHelper;
@@ -2152,6 +2153,12 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     void checkActivity(int period, int time, int casenum) {     //주기별 task설정
         LOG.debug("check activity >> IS_NOTIFY: " + IS_NOTIFY + " DESTROY NOTIFI:" + DESTROY_NOTIFICATION );
         if (HuamiSupport.HEART_RATE > 0) {
+
+            if(0<IN_TIME_STEP && IN_TIME_STEP<=10 && STEP_TIMER==90){
+                    IN_TIME_STEP=0;
+            }
+
+
             if (STEP_TIMER == 0 && !initial) {
                 LOG.debug("check activity >> IS_NOTIFIED");
                 // base 설정
@@ -2178,6 +2185,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                 STEP_TIMER = 1;
                 IN_TIME_STEP = 0;
                 DESTROY_NOTIFICATION = true;
+                DebugActivity.TIMER_UI=false;
 
             } else {
 

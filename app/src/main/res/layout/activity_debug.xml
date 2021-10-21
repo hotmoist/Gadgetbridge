@@ -26,9 +26,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
                 <TextView
                     android:id="@+id/timePeriod"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingStart="10dp"
                     android:gravity="left"
@@ -36,17 +40,26 @@
                     android:textSize="30sp"
                     grid:layout_columnSpan="4"
                     grid:layout_gravity="fill_horizontal" />
-
+                </LinearLayout>
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
                 <TextView
                     android:id="@+id/inTimeStep"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="200dp"
                     android:gravity="center"
-                    android:text="운동 횟수\n0"
-                    android:textSize="100px"
+                    android:text="어깨 운동\n0"
+                    android:textSize="80px"
                     grid:layout_columnSpan="4"
                     grid:layout_gravity="fill_horizontal" />
-
+                <ImageView
+                    android:id="@+id/imageView1"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/timer" />
+                </FrameLayout>
             </LinearLayout>
 
 
@@ -246,7 +259,8 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:layout_width="match_parent"
-                android:orientation="vertical">
+                android:orientation="horizontal">
+
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/fab"
                     android:layout_width="wrap_content"

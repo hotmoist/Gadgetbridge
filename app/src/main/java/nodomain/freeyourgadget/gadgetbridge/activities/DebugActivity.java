@@ -16,6 +16,7 @@
 package nodomain.freeyourgadget.gadgetbridge.activities;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Notification;
@@ -32,6 +33,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -41,9 +46,13 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -88,7 +97,6 @@ import nodomain.freeyourgadget.gadgetbridge.util.GB;
 import nodomain.freeyourgadget.gadgetbridge.util.Prefs;
 import nodomain.freeyourgadget.gadgetbridge.util.WidgetPreferenceStorage;
 
-import nodomain.freeyourgadget.gadgetbridge.service.devices.miband.RealtimeSamplesSupport;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huami.HuamiSupport;
 
 
@@ -98,8 +106,10 @@ import static nodomain.freeyourgadget.gadgetbridge.util.GB.NOTIFICATION_CHANNEL_
 public class DebugActivity extends AbstractGBActivity {
 
 
+    public static boolean TIMER_UI = false;
     private static final Logger LOG = LoggerFactory.getLogger(DebugActivity.class);
 
+    Animation anim = null;
     private static final String EXTRA_REPLY = "reply";
     private static final String ACTION_REPLY
             = "nodomain.freeyourgadget.gadgetbridge.DebugActivity.action.reply";
@@ -176,7 +186,7 @@ public class DebugActivity extends AbstractGBActivity {
 //                    HRvalText.setText("HR: " + HuamiSupport.HEART_RATE + "bpm");
 //                    StepText.setText("TOTAL STEP : " + HuamiSupport.TOTAL_STEP);
                     timePeriod.setText("경과 시간: " + (int) (HuamiSupport.STEP_TIMER / 60) + ":" + (HuamiSupport.STEP_TIMER) % 60+ " / "+ (HuamiSupport.RESET_TIME/60)+":00");
-                    inTimeStep.setText("운동 횟수\n" + HuamiSupport.IN_TIME_STEP);
+                    inTimeStep.setText("어깨 운동\n" + HuamiSupport.IN_TIME_STEP);
                     activationTimePeriod.setText("설정 활동 시간: " + newStartHour +":" + newStartMiunite + " ~ " + newEndHour +":" + newEndMiunite);
                     vibrationTimePeriod.setText("설정 주기 간격: " + (HuamiSupport.RESET_TIME/60));
                     if (HuamiSupport.CASES == HuamiSupport.NONE) {
@@ -342,7 +352,9 @@ public class DebugActivity extends AbstractGBActivity {
         for(int i = 0; i <minuteCases.length; i++){
             minuteCases[i] = i + "";
         }
-
+        Bitmap bitmap = Bitmap.createBitmap(800,800, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawColor(Color.BLACK);
 
         // time - start hour spinner
         ArrayAdapter<String> startHourSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, hourCases);
@@ -399,7 +411,7 @@ public class DebugActivity extends AbstractGBActivity {
             endHour.setText(newEndHour);
             endminute.setText(newEndMiunite);
         }
-        findViewById(R.id.develop_layout).setVisibility(View.GONE);
+//        findViewById(R.id.develop_layout).setVisibility(View.GONE);
 
         setVibrationTime.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -637,14 +649,38 @@ public class DebugActivity extends AbstractGBActivity {
             }
         }).start();
 
+        final ImageView timerImage = findViewById(R.id.imageView1);
+        Animation anim = AnimationUtils.loadAnimation(
+                getApplicationContext(), // 현재 화면의 제어권자
+                R.anim.rotate_anim);
+
+        if(HuamiSupport.STEP_TIMER>1){
+//                    timerImage.clearAnimation();
+            anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);
+            timerImage.startAnimation(anim);
+            TIMER_UI=true;
+        }
     }
+
     void notiTimer() {
         Timer notifyTimer = new Timer();
         TimerTask notifyTast = new TimerTask() {
             Intent intent = new Intent(GBApplication.getContext(), DebugActivity.class);
-
+            final ImageView timerImage = findViewById(R.id.imageView1);
+            Animation anim = AnimationUtils.loadAnimation(
+                    getApplicationContext(), // 현재 화면의 제어권자
+                    R.anim.rotate_anim);
             @Override
             public void run() {
+                if(HuamiSupport.STEP_TIMER==1&& !TIMER_UI){
+//                    timerImage.clearAnimation();
+                    anim.setDuration(HuamiSupport.RESET_TIME*1000);
+                    timerImage.startAnimation(anim);
+                    TIMER_UI=true;
+                }
+//
+//                LOG.debug(HuamiSupport.RESET_TIME + "ㅇㅇ" + HuamiSupport.STEP_TIMER+"UI");
+
                 if (HuamiSupport.HEART_RATE > 0) {
                     destroyNotification(13009);
                 }
