@@ -10,6 +10,8 @@ public class option {
     private static int time= 2400;
     private static String url="https://ljy897.cafe24.com/UserRegister4.php";
 
+
+
     static public int getCase(){
         return cases;
     }

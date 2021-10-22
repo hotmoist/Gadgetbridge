@@ -398,7 +398,7 @@
         -->
         <activity
             android:name=".activities.DebugActivity"
-            android:label="가젯브릿지"
+            android:label="HCI"
             android:parentActivityName=".activities.ControlCenterv2"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden">

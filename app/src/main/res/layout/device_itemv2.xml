@@ -126,9 +126,12 @@
                 card_view:tint="@color/secondarytext" />
 
             <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/option"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/device_image"
+                android:layout_marginTop="2dp"
+                android:visibility="gone"
                 card_view:flexWrap="wrap">
 
                 <LinearLayout
