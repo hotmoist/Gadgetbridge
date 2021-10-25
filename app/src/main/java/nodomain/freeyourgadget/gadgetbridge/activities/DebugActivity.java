@@ -48,11 +48,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
+import android.view.animation.RotateAnimation;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -110,8 +113,12 @@ public class DebugActivity extends AbstractGBActivity {
 //                (selectedState.equals("NON MUTABILITY"))
     public static boolean TIMER_UI = false;
     private static final Logger LOG = LoggerFactory.getLogger(DebugActivity.class);
-
+    ImageView timerImage=null;
     Animation anim = null;
+
+    int imageX=0;
+    int imageY=0;
+
     private static final String EXTRA_REPLY = "reply";
     private static final String ACTION_REPLY
             = "nodomain.freeyourgadget.gadgetbridge.DebugActivity.action.reply";
@@ -190,13 +197,15 @@ public class DebugActivity extends AbstractGBActivity {
                     if((HuamiSupport.STEP_TIMER) % 60 == -1){
                         timePeriod.setVisibility(View.GONE);
                         deviceListView.setVisibility(View.VISIBLE);
+                        fab.setVisibility(View.VISIBLE);
                     }else{
-                        timePeriod.setText("경과 시간: " + (int) (HuamiSupport.STEP_TIMER / 60) + ":" + (HuamiSupport.STEP_TIMER) % 60+ " / "+ (HuamiSupport.RESET_TIME/60)+":00");
+                        timePeriod.setText((int)((HuamiSupport.RESET_TIME/60-1)-(HuamiSupport.STEP_TIMER / 60)) + ":" + (60 - (HuamiSupport.STEP_TIMER) % 60));
                         timePeriod.setVisibility(View.VISIBLE);
                         deviceListView.setVisibility(View.GONE);
+                        fab.setVisibility(View.GONE);
                     }
-                    inTimeStep.setText("어깨 운동\n" + HuamiSupport.IN_TIME_STEP);
-                    activationTimePeriod.setText("설정 활동 시간: " + newStartHour +":" + newStartMiunite + " ~ " + newEndHour +":" + newEndMiunite);
+                    inTimeStep.setText("\n" + HuamiSupport.IN_TIME_STEP);
+                    activationTimePeriod.setText("활동 시간\n\n" + newStartHour +":" + newStartMiunite + " - " + newEndHour +":" + newEndMiunite);
                     vibrationTimePeriod.setText("설정 주기 간격: " + (HuamiSupport.RESET_TIME/60));
                     if (HuamiSupport.CASES == HuamiSupport.NONE) {
                         currentCase.setText("Current case: NONE");
@@ -228,6 +237,8 @@ public class DebugActivity extends AbstractGBActivity {
     EditText endHour;
     EditText endminute;
     Button setVibrationTime;
+    Button timeShow;
+    LinearLayout timelayout;
 
     TextView vibrationTimePeriod;
     //권한 부여
@@ -282,7 +293,8 @@ public class DebugActivity extends AbstractGBActivity {
         }
 
         else if(t ==2) {
-            // t == 2일때 활동 시간 지정정            editor.putBoolean("SAVE_VIB_TIME", true);
+            // t == 2일때 활동 시간 지정정
+            editor.putBoolean("SAVE_VIB_TIME", true);
             editor.putString("newStartHour", sendStartHourSpinner.getSelectedItem().toString().trim());
             editor.putString("newStartMinute", sendStartMinuteSpinner.getSelectedItem().toString().trim());
             editor.putString("newEndHour", sendEndHourSpinner.getSelectedItem().toString().trim());
@@ -400,6 +412,7 @@ public class DebugActivity extends AbstractGBActivity {
 //        endminute = findViewById(R.id.endMinute);
         setVibrationTime = findViewById(R.id.setVibrationTime);
         activationTimePeriod = findViewById(R.id.activationTimePeriod);
+        timeShow = findViewById(R.id.time_show);
 
         vibrationTimePeriod = findViewById(R.id.vibrationTimePeriod);
 
@@ -415,19 +428,45 @@ public class DebugActivity extends AbstractGBActivity {
 
         if (isSetVibrationTime) {
             // 이전에 시간이 저장된 경우가 있으면 세팅
-            startHour.setText(newStartHour);
-            startminute.setText(newStartMiunite);
-            endHour.setText(newEndHour);
-            endminute.setText(newEndMiunite);
+//            startHour.setText(newStartHour);
+//            startminute.setText(newStartMiunite);
+//            endHour.setText(newEndHour);
+//            endminute.setText(newEndMiunite);
+            HuamiSupport.SET_START_TIME = Integer.parseInt(newStartHour + newStartMiunite + "000");
+            HuamiSupport.SET_END_TIME = Integer.parseInt(newEndHour + newEndMiunite + "000");
         }
         findViewById(R.id.develop_layout).setVisibility(View.GONE);
+        timelayout = findViewById(R.id.time_layout);
+        timelayout.setVisibility(View.GONE);
+
+        timeShow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(timelayout.getVisibility()==View.GONE){
+                    timelayout.setVisibility(View.VISIBLE);
+                    timeShow.setVisibility(View.GONE);
+                }else {
+                    timelayout.setVisibility(View.GONE);
+                    timeShow.setVisibility(View.VISIBLE);
+                }
+
+
+            }
+        });
+        Button cancel_setVibrationTime = findViewById(R.id.cancel_setVibrationTime);
+        cancel_setVibrationTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                timelayout.setVisibility(View.GONE);
+                timeShow.setVisibility(View.VISIBLE);
+            }
+        });
 
         setVibrationTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String startTime = null;
                 String endTime = null;
-
                 newStartHour = (String) sendStartHourSpinner.getSelectedItem();
                 newStartMiunite = (String) sendStartMinuteSpinner.getSelectedItem();
                 newEndHour = (String) sendEndHourSpinner.getSelectedItem();
@@ -461,6 +500,13 @@ public class DebugActivity extends AbstractGBActivity {
                     HuamiSupport.SET_START_TIME = Integer.parseInt(startTime);
                     HuamiSupport.SET_END_TIME = Integer.parseInt(endTime);
                     saveTime(2);
+                    if(timelayout.getVisibility()==View.GONE){
+                        timelayout.setVisibility(View.VISIBLE);
+                        timeShow.setVisibility(View.GONE);
+                    }else {
+                        timelayout.setVisibility(View.GONE);
+                        timeShow.setVisibility(View.VISIBLE);
+                    }
                 } else {
                     GB.toast("다시 입력하세요.", Toast.LENGTH_SHORT, GB.INFO);
                 }
@@ -657,35 +703,60 @@ public class DebugActivity extends AbstractGBActivity {
             }
         }).start();
 
-        final ImageView timerImage = findViewById(R.id.imageView1);
-        Animation anim = AnimationUtils.loadAnimation(
-                getApplicationContext(), // 현재 화면의 제어권자
-                R.anim.rotate_anim);
+        timerImage = findViewById(R.id.imageView1);
 
-        if(HuamiSupport.STEP_TIMER>1){
 //                    timerImage.clearAnimation();
-            anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);
-            timerImage.startAnimation(anim);
-            TIMER_UI=true;
-        }
+//            anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);
+//            timerImage.startAnimation(anim);
+//            RotateAnimation anim =
+//                    new RotateAnimation(45+360*(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000)/HuamiSupport.STEP_TIMER*1000, 405,0.5f,0.5f);
+//            anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);//에니메이션 지속시간
+//
+//            timerImage.startAnimation(anim);
 
 
         HuamiSupport.CASES=option.getCase();
         HuamiSupport.RESET_TIME=option.getTime();
+
+
+    }
+
+    @Override
+    /**
+     * Todo
+     * 계산식
+     */
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if(HuamiSupport.STEP_TIMER>1){
+            imageX = timerImage.getWidth();
+            imageY = timerImage.getHeight();
+            RotateAnimation anim =
+                    new RotateAnimation(405-360*(HuamiSupport.RESET_TIME-HuamiSupport.STEP_TIMER)/HuamiSupport.RESET_TIME, 405,timerImage.getWidth()/2,timerImage.getHeight()/2);
+            anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);//에니메이션 지속시간
+            anim.setInterpolator(new LinearInterpolator());
+            timerImage.startAnimation(anim);
+        }
     }
 
     void notiTimer() {
         Timer notifyTimer = new Timer();
         TimerTask notifyTast = new TimerTask() {
             Intent intent = new Intent(GBApplication.getContext(), DebugActivity.class);
-            final ImageView timerImage = findViewById(R.id.imageView1);
-            Animation anim = AnimationUtils.loadAnimation(
-                    getApplicationContext(), // 현재 화면의 제어권자
-                    R.anim.rotate_anim);
+//            final ImageView timerImage = findViewById(R.id.imageView1);
+//            Animation anim = AnimationUtils.loadAnimation(
+//                    getApplicationContext(), // 현재 화면의 제어권자
+//                    R.anim.rotate_anim);
+
+
             @Override
             public void run() {
-                if(HuamiSupport.STEP_TIMER==1&& !TIMER_UI){
+                if(HuamiSupport.STEP_TIMER==1&&!TIMER_UI){
 //                    timerImage.clearAnimation();
+                    RotateAnimation anim =
+                            new RotateAnimation(45, 405,timerImage.getWidth()/2,timerImage.getHeight()/2);
+                    anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);//에니메이션 지속시간
+                    anim.setInterpolator(new LinearInterpolator());
                     anim.setDuration(HuamiSupport.RESET_TIME*1000);
                     timerImage.startAnimation(anim);
                     TIMER_UI=true;

@@ -2042,9 +2042,10 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
             String getTime = dateFormat.format(date);
             CURRENT_TIME = Integer.parseInt(getTime.substring(11, 13) + getTime.substring(14, 16) + getTime.substring(17));
-
+            LOG.debug(SET_START_TIME + "셋 시작 시간" + CURRENT_TIME +" 현재 시간" + SET_END_TIME + "셋 끝 시간");
             if (SET_START_TIME <= CURRENT_TIME && SET_END_TIME >= CURRENT_TIME || (SET_END_TIME == 0 && SET_START_TIME == 0)) {
 
+                LOG.debug("셋 시간 작동 중");
                 insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP + "", VIBRATION_TAG + "");
                 if (VIBRATION_TAG > 0) {
                     VIBRATION_TAG++;
@@ -2226,6 +2227,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             if (STEP_TIMER >= RESET_TIME) {
                 // 주기 리셋
                 STEP_TIMER = 0;
+                DebugActivity.TIMER_UI=false;
             }
         } else {
             // set timer to 0 constantly
