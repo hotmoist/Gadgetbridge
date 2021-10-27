@@ -46,6 +46,7 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
@@ -185,7 +186,7 @@ public class DebugActivity extends AbstractGBActivity {
             } while (true);
         }
     }
-
+    TextView runMessage;
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
@@ -197,11 +198,13 @@ public class DebugActivity extends AbstractGBActivity {
                     if((HuamiSupport.STEP_TIMER) % 60 == -1){
                         timePeriod.setVisibility(View.GONE);
                         deviceListView.setVisibility(View.VISIBLE);
+                        runMessage.setVisibility(View.VISIBLE);
                         fab.setVisibility(View.VISIBLE);
                     }else{
                         timePeriod.setText((int)((HuamiSupport.RESET_TIME/60-1)-(HuamiSupport.STEP_TIMER / 60)) + ":" + (60 - (HuamiSupport.STEP_TIMER) % 60));
                         timePeriod.setVisibility(View.VISIBLE);
                         deviceListView.setVisibility(View.GONE);
+                        runMessage.setVisibility(View.GONE);
                         fab.setVisibility(View.GONE);
                     }
                     inTimeStep.setText("\n" + HuamiSupport.IN_TIME_STEP);
@@ -415,7 +418,7 @@ public class DebugActivity extends AbstractGBActivity {
         timeShow = findViewById(R.id.time_show);
 
         vibrationTimePeriod = findViewById(R.id.vibrationTimePeriod);
-
+        runMessage = findViewById(R.id.run_message);
         // 커서 부분 제거
 //        startHour.setCursorVisible(false);
 //        startminute.setCursorVisible(false);
@@ -438,7 +441,7 @@ public class DebugActivity extends AbstractGBActivity {
         findViewById(R.id.develop_layout).setVisibility(View.GONE);
         timelayout = findViewById(R.id.time_layout);
         timelayout.setVisibility(View.GONE);
-
+        timePeriod.setVisibility(View.GONE);
         timeShow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -461,7 +464,6 @@ public class DebugActivity extends AbstractGBActivity {
                 timeShow.setVisibility(View.VISIBLE);
             }
         });
-
         setVibrationTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -508,6 +510,11 @@ public class DebugActivity extends AbstractGBActivity {
                         timeShow.setVisibility(View.VISIBLE);
                     }
                 } else {
+
+                    newStartHour = "00";
+                    newStartMiunite = "00";
+                    newEndHour = "00";
+                    newEndMiunite = "00";
                     GB.toast("다시 입력하세요.", Toast.LENGTH_SHORT, GB.INFO);
                 }
             }
@@ -728,15 +735,7 @@ public class DebugActivity extends AbstractGBActivity {
      */
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if(HuamiSupport.STEP_TIMER>1){
-            imageX = timerImage.getWidth();
-            imageY = timerImage.getHeight();
-            RotateAnimation anim =
-                    new RotateAnimation(405-360*(HuamiSupport.RESET_TIME-HuamiSupport.STEP_TIMER)/HuamiSupport.RESET_TIME, 405,timerImage.getWidth()/2,timerImage.getHeight()/2);
-            anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);//에니메이션 지속시간
-            anim.setInterpolator(new LinearInterpolator());
-            timerImage.startAnimation(anim);
-        }
+
     }
 
     void notiTimer() {
@@ -751,6 +750,9 @@ public class DebugActivity extends AbstractGBActivity {
 
             @Override
             public void run() {
+
+//
+//                LOG.debug(HuamiSupport.RESET_TIME + "ㅇㅇ" + HuamiSupport.STEP_TIMER+"UI");
                 if(HuamiSupport.STEP_TIMER==1&&!TIMER_UI){
 //                    timerImage.clearAnimation();
                     RotateAnimation anim =
@@ -761,9 +763,6 @@ public class DebugActivity extends AbstractGBActivity {
                     timerImage.startAnimation(anim);
                     TIMER_UI=true;
                 }
-//
-//                LOG.debug(HuamiSupport.RESET_TIME + "ㅇㅇ" + HuamiSupport.STEP_TIMER+"UI");
-
                 if (HuamiSupport.HEART_RATE > 0) {
                     destroyNotification(13009);
                 }
@@ -807,6 +806,13 @@ public class DebugActivity extends AbstractGBActivity {
             }
         };
         notifyTimer.schedule(notifyTast,0,100);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(timelayout.getVisibility()==View.VISIBLE)
+            timelayout.setVisibility(View.GONE);
     }
 
     private void deleteWidgetsPrefs() {

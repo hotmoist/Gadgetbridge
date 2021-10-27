@@ -17,7 +17,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
-        app:srcCompat="@drawable/ic_launcher" />
+        app:srcCompat="@drawable/ic_accessibility_new_black_24dp" />
 
     <!-- TODO: make visible when we support multiple users -->
     <TextView
