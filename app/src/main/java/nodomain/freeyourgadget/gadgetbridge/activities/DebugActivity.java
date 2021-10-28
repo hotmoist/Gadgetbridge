@@ -209,6 +209,9 @@ public class DebugActivity extends AbstractGBActivity {
                     }
                     inTimeStep.setText("\n" + HuamiSupport.IN_TIME_STEP);
                     activationTimePeriod.setText("활동 시간\n\n" + newStartHour +":" + newStartMiunite + " - " + newEndHour +":" + newEndMiunite);
+                    if(newStartHour.equals("0")&&newStartMiunite.equals("0")&&newEndHour.equals("0")&&newEndMiunite.equals("0")){
+                        activationTimePeriod.setText("활동 시간\n\n항상 활성화");
+                    }
                     vibrationTimePeriod.setText("설정 주기 간격: " + (HuamiSupport.RESET_TIME/60));
                     if (HuamiSupport.CASES == HuamiSupport.NONE) {
                         currentCase.setText("Current case: NONE");
@@ -477,7 +480,8 @@ public class DebugActivity extends AbstractGBActivity {
                 if (
                         (!newStartHour.equals("") && !newStartMiunite.equals("")) && (newStartHour.length() < 3 && newStartMiunite.length() < 3 && Integer.parseInt(newStartHour) < 24 && Integer.parseInt(newStartMiunite) < 60)
                                 && (!newEndHour.equals("") && !newEndMiunite.equals("")) && (newEndHour.length() < 3 && newEndMiunite.length() < 3 && Integer.parseInt(newEndHour) < 24 && Integer.parseInt(newEndMiunite) < 60)
-                                && (Integer.parseInt(newEndHour) > Integer.parseInt(newStartHour))
+                                && (Integer.parseInt(newEndHour) > Integer.parseInt(newStartHour)
+                                || (newStartHour.equals("0") && newStartMiunite.equals("0") && newEndHour.equals("0") && newEndMiunite.equals("0")))
                 ) {
                     if (newStartHour.length() == 1) {
                         newStartHour = '0' + newStartHour;
@@ -509,8 +513,10 @@ public class DebugActivity extends AbstractGBActivity {
                         timelayout.setVisibility(View.GONE);
                         timeShow.setVisibility(View.VISIBLE);
                     }
+                    if(newStartHour.equals("0")&&newStartMiunite.equals("0")&&newEndHour.equals("0")&&newEndMiunite.equals("0")){
+                        activationTimePeriod.setText("활동 시간\n\n항상 활성화");
+                    }
                 } else {
-
                     newStartHour = "00";
                     newStartMiunite = "00";
                     newEndHour = "00";
