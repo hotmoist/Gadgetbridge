@@ -197,12 +197,16 @@ public class DebugActivity extends AbstractGBActivity {
 //                    StepText.setText("TOTAL STEP : " + HuamiSupport.TOTAL_STEP);
                     if((HuamiSupport.STEP_TIMER) % 60 == -1){
                         timePeriod.setVisibility(View.GONE);
+                        timePeriod.animate().alpha(0.0f);
+                        deviceListView.animate().alpha(1.0f);
                         deviceListView.setVisibility(View.VISIBLE);
                         runMessage.setVisibility(View.VISIBLE);
                         fab.setVisibility(View.VISIBLE);
                     }else{
                         timePeriod.setText((int)((HuamiSupport.RESET_TIME/60-1)-(HuamiSupport.STEP_TIMER / 60)) + ":" + (60 - (HuamiSupport.STEP_TIMER) % 60));
                         timePeriod.setVisibility(View.VISIBLE);
+                        timePeriod.animate().alpha(1.0f);
+                        deviceListView.animate().alpha(0.0f);
                         deviceListView.setVisibility(View.GONE);
                         runMessage.setVisibility(View.GONE);
                         fab.setVisibility(View.GONE);
@@ -448,22 +452,22 @@ public class DebugActivity extends AbstractGBActivity {
         timeShow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(timelayout.getVisibility()==View.GONE){
+                    timelayout.animate().alpha(1.0f);
                     timelayout.setVisibility(View.VISIBLE);
+                    timelayout.animate().translationY(-50);
+                    timeShow.animate().alpha(0.0f);
                     timeShow.setVisibility(View.GONE);
-                }else {
-                    timelayout.setVisibility(View.GONE);
-                    timeShow.setVisibility(View.VISIBLE);
-                }
-
-
             }
         });
         Button cancel_setVibrationTime = findViewById(R.id.cancel_setVibrationTime);
         cancel_setVibrationTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+//                timelayout.setVisibility(View.GONE);
+                timelayout.animate().alpha(0.0f);
                 timelayout.setVisibility(View.GONE);
+                timelayout.animate().translationY(50);
+                timeShow.animate().alpha(1.0f);
                 timeShow.setVisibility(View.VISIBLE);
             }
         });
@@ -506,13 +510,13 @@ public class DebugActivity extends AbstractGBActivity {
                     HuamiSupport.SET_START_TIME = Integer.parseInt(startTime);
                     HuamiSupport.SET_END_TIME = Integer.parseInt(endTime);
                     saveTime(2);
-                    if(timelayout.getVisibility()==View.GONE){
-                        timelayout.setVisibility(View.VISIBLE);
-                        timeShow.setVisibility(View.GONE);
-                    }else {
-                        timelayout.setVisibility(View.GONE);
-                        timeShow.setVisibility(View.VISIBLE);
-                    }
+
+                    timelayout.animate().alpha(0.0f);
+                    timelayout.setVisibility(View.GONE);
+                    timelayout.animate().translationY(50);
+                    timeShow.animate().alpha(1.0f);
+                    timeShow.setVisibility(View.VISIBLE);
+
                     if(newStartHour.equals("0")&&newStartMiunite.equals("0")&&newEndHour.equals("0")&&newEndMiunite.equals("0")){
                         activationTimePeriod.setText("활동 시간\n\n항상 활성화");
                     }
