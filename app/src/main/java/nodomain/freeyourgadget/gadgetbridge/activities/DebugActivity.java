@@ -40,6 +40,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.Message;
 import android.telephony.PhoneStateListener;
@@ -722,14 +723,14 @@ public class DebugActivity extends AbstractGBActivity {
 
         timerImage = findViewById(R.id.imageView1);
 
-//                    timerImage.clearAnimation();
-//            anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);
-//            timerImage.startAnimation(anim);
-//            RotateAnimation anim =
-//                    new RotateAnimation(45+360*(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000)/HuamiSupport.STEP_TIMER*1000, 405,0.5f,0.5f);
-//            anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);//에니메이션 지속시간
+//                timerImage.clearAnimation();
+//        anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);
+//        timerImage.startAnimation(anim);
+//        RotateAnimation anim =
+//                new RotateAnimation(45+360*(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000)/HuamiSupport.STEP_TIMER*1000, 405,0.5f,0.5f);
+//        anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);//에니메이션 지속시간
 //
-//            timerImage.startAnimation(anim);
+//        timerImage.startAnimation(anim);
 
 
         HuamiSupport.CASES=option.getCase();
@@ -745,7 +746,17 @@ public class DebugActivity extends AbstractGBActivity {
      */
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-
+        if(timelayout.getVisibility()==View.VISIBLE)
+            timelayout.setVisibility(View.GONE);
+        if(HuamiSupport.STEP_TIMER>1){
+            imageX = timerImage.getWidth();
+            imageY = timerImage.getHeight();
+            RotateAnimation anim =
+                    new RotateAnimation(405-360*(HuamiSupport.RESET_TIME-HuamiSupport.STEP_TIMER)/HuamiSupport.RESET_TIME, 405,timerImage.getWidth()/2,timerImage.getHeight()/2);
+            anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);//에니메이션 지속시간
+            anim.setInterpolator(new LinearInterpolator());
+            timerImage.startAnimation(anim);
+        }
     }
 
     void notiTimer() {
@@ -821,8 +832,15 @@ public class DebugActivity extends AbstractGBActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if(timelayout.getVisibility()==View.VISIBLE)
-            timelayout.setVisibility(View.GONE);
+        if(HuamiSupport.STEP_TIMER>1){
+            imageX = timerImage.getWidth();
+            imageY = timerImage.getHeight();
+            RotateAnimation anim =
+                    new RotateAnimation(405-360*(HuamiSupport.RESET_TIME-HuamiSupport.STEP_TIMER)/HuamiSupport.RESET_TIME, 405,timerImage.getWidth()/2,timerImage.getHeight()/2);
+            anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);//에니메이션 지속시간
+            anim.setInterpolator(new LinearInterpolator());
+            timerImage.startAnimation(anim);
+        }
     }
 
     private void deleteWidgetsPrefs() {
