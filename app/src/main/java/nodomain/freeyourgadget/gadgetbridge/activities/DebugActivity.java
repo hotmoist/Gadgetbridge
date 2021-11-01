@@ -746,8 +746,8 @@ public class DebugActivity extends AbstractGBActivity {
      */
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if(timelayout.getVisibility()==View.VISIBLE)
-            timelayout.setVisibility(View.GONE);
+//        if(timelayout.getVisibility()==View.VISIBLE)
+//            timelayout.setVisibility(View.GONE);
         if(HuamiSupport.STEP_TIMER>1){
             imageX = timerImage.getWidth();
             imageY = timerImage.getHeight();
