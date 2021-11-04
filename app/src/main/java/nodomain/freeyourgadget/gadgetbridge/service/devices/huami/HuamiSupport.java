@@ -2042,7 +2042,10 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
             String getTime = dateFormat.format(date);
             CURRENT_TIME = Integer.parseInt(getTime.substring(11, 13) + getTime.substring(14, 16) + getTime.substring(17));
-            LOG.debug(SET_START_TIME + "셋 시작 시간" + CURRENT_TIME +" 현재 시간" + SET_END_TIME + "셋 끝 시간");
+            if(CURRENT_TIME>=240000){
+                CURRENT_TIME-=240000;
+            }
+            LOG.debug(SET_START_TIME + "셋 시작 시간" + CURRENT_TIME +" 현재 시간" + SET_END_TIME + "셋 끝 시간"+ getTime);
             if (SET_START_TIME <= CURRENT_TIME && SET_END_TIME >= CURRENT_TIME || (SET_END_TIME == 0 && SET_START_TIME == 0)) {
 
                 LOG.debug("셋 시간 작동 중");
@@ -2050,12 +2053,15 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                 if (VIBRATION_TAG > 0) {
                     VIBRATION_TAG++;
                 }
+                if( STEP_TIMER==0){
+                    VIBRATION_TAG = 0;        //진동이 꺼지면 초기화
+                }
                 // 진동이 오는 동안 계속해서 1씩 더해줌. 10초동안 울리면 DB에 1~10으로 초당 저장
 
 
                 //            LOG.debug("insert Debug : "+ stepTimer+""+HuamiSupport.HEART_RATE+""+HuamiSupport.TOTAL_STEP+""+(HuamiSupport.TOTAL_STEP - beforeStep)+"");
-                LOG.debug("check Activity >> step timer: " + STEP_TIMER + ", heart rate: " + HuamiSupport.HEART_RATE + ", total step:" + HuamiSupport.TOTAL_STEP + ", step: " + IN_TIME_STEP + ", wear notify timer: " + WEAR_NOTIFY_TIMER + ", in time step : " + IN_TIME_STEP);
-                LOG.debug("check Activity >> current case: " + CASES);
+//                LOG.debug("check Activity >> step timer: " + STEP_TIMER + ", heart rate: " + HuamiSupport.HEART_RATE + ", total step:" + HuamiSupport.TOTAL_STEP + ", step: " + IN_TIME_STEP + ", wear notify timer: " + WEAR_NOTIFY_TIMER + ", in time step : " + IN_TIME_STEP);
+//                LOG.debug("check Activity >> current case: " + CASES);
 
                 b_step = HuamiSupport.TOTAL_STEP;
                 switch (CASES) {           //실험 대상군 설정
