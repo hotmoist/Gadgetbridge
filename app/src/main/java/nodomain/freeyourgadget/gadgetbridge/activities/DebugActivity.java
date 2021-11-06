@@ -207,8 +207,8 @@ public class DebugActivity extends AbstractGBActivity {
                         timePeriod.setText((int)((HuamiSupport.RESET_TIME/60-1)-(HuamiSupport.STEP_TIMER / 60)) + ":" + (60 - (HuamiSupport.STEP_TIMER) % 60));
                         timePeriod.setVisibility(View.VISIBLE);
                         timePeriod.animate().alpha(1.0f);
-//                        deviceListView.animate().alpha(0.0f);
-//                        deviceListView.setVisibility(View.GONE);
+                        deviceListView.animate().alpha(0.0f);
+                        deviceListView.setVisibility(View.GONE);
                         runMessage.setVisibility(View.GONE);
                         fab.setVisibility(View.GONE);
                     }
@@ -771,8 +771,6 @@ public class DebugActivity extends AbstractGBActivity {
 
             @Override
             public void run() {
-
-                LOG.debug("window" + windowon);
                 if(HuamiSupport.STEP_TIMER==1&&!TIMER_UI){
 //                    timerImage.clearAnimation();
                     RotateAnimation anim =
