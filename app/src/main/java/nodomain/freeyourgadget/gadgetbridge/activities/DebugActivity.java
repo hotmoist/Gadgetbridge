@@ -117,7 +117,7 @@ public class DebugActivity extends AbstractGBActivity {
     private static final Logger LOG = LoggerFactory.getLogger(DebugActivity.class);
     ImageView timerImage=null;
     Animation anim = null;
-
+    public static String windowon = "화면켜짐";
     int imageX=0;
     int imageY=0;
 
@@ -207,8 +207,8 @@ public class DebugActivity extends AbstractGBActivity {
                         timePeriod.setText((int)((HuamiSupport.RESET_TIME/60-1)-(HuamiSupport.STEP_TIMER / 60)) + ":" + (60 - (HuamiSupport.STEP_TIMER) % 60));
                         timePeriod.setVisibility(View.VISIBLE);
                         timePeriod.animate().alpha(1.0f);
-                        deviceListView.animate().alpha(0.0f);
-                        deviceListView.setVisibility(View.GONE);
+//                        deviceListView.animate().alpha(0.0f);
+//                        deviceListView.setVisibility(View.GONE);
                         runMessage.setVisibility(View.GONE);
                         fab.setVisibility(View.GONE);
                     }
@@ -772,8 +772,7 @@ public class DebugActivity extends AbstractGBActivity {
             @Override
             public void run() {
 
-//
-//                LOG.debug(HuamiSupport.RESET_TIME + "ㅇㅇ" + HuamiSupport.STEP_TIMER+"UI");
+                LOG.debug("window" + windowon);
                 if(HuamiSupport.STEP_TIMER==1&&!TIMER_UI){
 //                    timerImage.clearAnimation();
                     RotateAnimation anim =
@@ -1090,4 +1089,15 @@ public class DebugActivity extends AbstractGBActivity {
         return new ChangeLog(this, css);
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        windowon="켜짐";
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        windowon="꺼짐";
+    }
 }

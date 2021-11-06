@@ -2049,7 +2049,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
 //            if (SET_START_TIME <= CURRENT_TIME && SET_END_TIME >= CURRENT_TIME || (SET_END_TIME == 0 && SET_START_TIME == 0)) {
 
                 LOG.debug("셋 시간 작동 중");
-                insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP + "", VIBRATION_TAG + "");
+                insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP + "", VIBRATION_TAG + "", DebugActivity.windowon);
                 if (VIBRATION_TAG > 0) {
                     VIBRATION_TAG++;
                 }

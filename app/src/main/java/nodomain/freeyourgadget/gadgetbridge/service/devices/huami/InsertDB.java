@@ -23,16 +23,18 @@ public class InsertDB {
     String realtimestep = "test";
     String intimestep = "test";
     String vibrationtag = "test";
+    String windowon = "test";
     Context context;
 
 
-    InsertDB(String time, String heartrate, String totalstep, String realtimestep, String intimestep, String vibrationtag , Context context) {
+    InsertDB(String time, String heartrate, String totalstep, String realtimestep, String intimestep, String vibrationtag, String windowon , Context context) {
         this.time = time;
         this.heartrate = heartrate;
         this.totalstep = totalstep;
         this.realtimestep = realtimestep;
         this.intimestep = intimestep;
         this.vibrationtag = vibrationtag;
+        this.windowon = windowon;
         this.context = context;
     }
 
@@ -40,13 +42,14 @@ public class InsertDB {
         this.context=context;
     }
 
-    public void insertData(String time, String heartrate, String totalstep, String realtimestep, String intimestep, String vibrationtag) {
+    public void insertData(String time, String heartrate, String totalstep, String realtimestep, String intimestep, String vibrationtag, String windowon) {
         this.time = time;
         this.heartrate = heartrate;
         this.totalstep = totalstep;
         this.realtimestep = realtimestep;
         this.intimestep = intimestep;
         this.vibrationtag = vibrationtag;
+        this.windowon = windowon;
 
         Response.Listener<String> responseListener = new Response.Listener<String>() {
             @Override
@@ -69,7 +72,7 @@ public class InsertDB {
         };
         try {
 
-            RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, intimestep, vibrationtag, responseListener);
+            RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, intimestep, vibrationtag,windowon, responseListener);
    
 //            registerRequest.setShouldCache(true);
             registerRequest.setShouldCache(false);
