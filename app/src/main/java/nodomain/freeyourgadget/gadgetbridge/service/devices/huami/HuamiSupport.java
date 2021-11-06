@@ -2046,7 +2046,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                 CURRENT_TIME-=240000;
             }
             LOG.debug(SET_START_TIME + "셋 시작 시간" + CURRENT_TIME +" 현재 시간" + SET_END_TIME + "셋 끝 시간"+ getTime);
-            if (SET_START_TIME <= CURRENT_TIME && SET_END_TIME >= CURRENT_TIME || (SET_END_TIME == 0 && SET_START_TIME == 0)) {
+//            if (SET_START_TIME <= CURRENT_TIME && SET_END_TIME >= CURRENT_TIME || (SET_END_TIME == 0 && SET_START_TIME == 0)) {
 
                 LOG.debug("셋 시간 작동 중");
                 insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP + "", VIBRATION_TAG + "");
@@ -2077,12 +2077,12 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                     case NONE_MUTABILITY:
                         checkActivity(1, 1, NONE_MUTABILITY);
                 }
-            } else {
-                STEP_TIMER = -1;
-                IN_TIME_STEP = 0;
-                WEAR_NOTIFY_TIMER = 1;
-                initial = true;
-            }
+//            } else {
+//                STEP_TIMER = -1;
+//                IN_TIME_STEP = 0;
+//                WEAR_NOTIFY_TIMER = 1;
+//                initial = true;
+//            }
         }
     };
 
@@ -2100,6 +2100,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                 switch (casenum) {
 
                     case MUTABILITY:
+                    case NONE_MUTABILITY:
                         vibrateOnce();
                         if (VIBRATION_TAG == 0) {
                             VIBRATION_TAG = 1;        //진동이 울리면 시작됐다고 표시
@@ -2133,11 +2134,6 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                             timer.cancel();
                         }
                         break;
-                    case NONE_MUTABILITY:
-                        vibrateOnce();
-                        if (VIBRATION_TAG == 0) {
-                            VIBRATION_TAG = 1;
-                        }
                 }
             }
         };
@@ -2174,6 +2170,9 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                 if (IN_TIME_STEP > -1 && IN_TIME_STEP < 10) {
                     // 한 주기 동안 10회 미만의 step인 경우 -> notify 실시
                     if (casenum == MUTABILITY) {
+                        WATCH_VIB_SET = true;
+                    }
+                    if (casenum == NONE_MUTABILITY) {
                         WATCH_VIB_SET = true;
                     }
                     IS_NOTIFY = true;
@@ -2218,6 +2217,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                     }
                     if (STEP_TIMER > 90) {
                         // 20초 초과 후 진동을 멈춤
+                        DESTROY_NOTIFICATION = true;
                         WATCH_VIB_SET = false;
                     }
                 }
@@ -2225,6 +2225,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                 // case : NON_MUTABILITY
                 if (casenum == NONE_MUTABILITY) {
                     if (STEP_TIMER > 90) {
+                        DESTROY_NOTIFICATION = true;
                         WATCH_VIB_SET = false;
                     }
                 }
