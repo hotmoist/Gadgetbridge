@@ -2220,7 +2220,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                         WATCH_VIB_SET = false;
                     }
                     if (STEP_TIMER > 90) {
-                        // 20초 초과 후 진동을 멈춤
+                        // 90초 초과 후 진동을 멈춤
                         DESTROY_NOTIFICATION = true;
                         WATCH_VIB_SET = false;
                     }

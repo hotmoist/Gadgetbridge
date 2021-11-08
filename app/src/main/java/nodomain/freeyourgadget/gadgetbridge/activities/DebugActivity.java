@@ -1090,12 +1090,12 @@ public class DebugActivity extends AbstractGBActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        windowon="켜짐";
+        windowon="on";
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        windowon="꺼짐";
+        windowon="close";
     }
 }
