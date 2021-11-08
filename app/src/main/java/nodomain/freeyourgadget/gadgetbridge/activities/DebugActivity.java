@@ -539,17 +539,17 @@ public class DebugActivity extends AbstractGBActivity {
             @Override
             public void onClick(View v) {
                 selectedState = (String) sendCaseSpinner.getSelectedItem();
-//                if (selectedState.equals("NONE")) {
-//                    HuamiSupport.CASES = HuamiSupport.NONE;
-//                } else if (selectedState.equals("MUTABILITY")) {
-//                    HuamiSupport.CASES = HuamiSupport.MUTABILITY;
-//                } else if (selectedState.equals("ONE SECOND")) {
-//                    HuamiSupport.CASES = HuamiSupport.ONE_SECOND;
-//                } else if (selectedState.equals("FIVE SECOND")) {
-//                    HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
-//                }else if (selectedState.equals("NON MUTABILITY")){
-//                    HuamiSupport.CASES = HuamiSupport.NONE_MUTABILITY;
-//                }
+                if (selectedState.equals("NONE")) {
+                    HuamiSupport.CASES = HuamiSupport.NONE;
+                } else if (selectedState.equals("MUTABILITY")) {
+                    HuamiSupport.CASES = HuamiSupport.MUTABILITY;
+                } else if (selectedState.equals("ONE SECOND")) {
+                    HuamiSupport.CASES = HuamiSupport.ONE_SECOND;
+                } else if (selectedState.equals("FIVE SECOND")) {
+                    HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
+                }else if (selectedState.equals("NON MUTABILITY")){
+                    HuamiSupport.CASES = HuamiSupport.NONE_MUTABILITY;
+                }
                 saveTime(1);
             }
         });
@@ -733,7 +733,7 @@ public class DebugActivity extends AbstractGBActivity {
 //        timerImage.startAnimation(anim);
 
 
-        HuamiSupport.CASES=option.getCase();
+//        HuamiSupport.CASES=option.getCase();
         HuamiSupport.RESET_TIME=option.getTime();
 
 

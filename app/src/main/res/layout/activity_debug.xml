@@ -101,44 +101,7 @@
                 android:paddingBottom="40dp"
                 android:orientation="vertical">
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:orientation="horizontal">
 
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="2"
-                                android:orientation="vertical">
-                                <TextView
-                                    android:id="@+id/currentCase"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:text="Current case: NONE"
-                                    android:gravity="center"
-                                    android:textSize="15dp"
-                                    grid:layout_columnSpan="4"
-                                    grid:layout_gravity="fill_horizontal" />
-                                <Spinner
-                                    android:id="@+id/sendCaseSpinner"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:gravity="center"
-                                    android:text="set Lab Case"
-                                    grid:layout_gravity="fill_horizontal" />
-                            </LinearLayout>
-
-                            <Button
-                                android:id="@+id/setLabCase"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:layout_gravity="top"
-                                android:text="Case 설정"
-                                grid:layout_gravity="fill_horizontal" />
-                        </LinearLayout>
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -305,6 +268,44 @@
                             android:layout_height="wrap_content"
                             android:text="분"
                             grid:layout_columnSpan="1" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="2"
+                            android:orientation="vertical">
+                            <TextView
+                                android:id="@+id/currentCase"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Current case: NONE"
+                                android:gravity="center"
+                                android:textSize="15dp"
+                                grid:layout_columnSpan="4"
+                                grid:layout_gravity="fill_horizontal" />
+                            <Spinner
+                                android:id="@+id/sendCaseSpinner"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:text="set Lab Case"
+                                grid:layout_gravity="fill_horizontal" />
+                        </LinearLayout>
+
+                        <Button
+                            android:id="@+id/setLabCase"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:layout_gravity="top"
+                            android:text="Case 설정"
+                            grid:layout_gravity="fill_horizontal" />
                     </LinearLayout>
                     <LinearLayout
                         android:layout_width="wrap_content"

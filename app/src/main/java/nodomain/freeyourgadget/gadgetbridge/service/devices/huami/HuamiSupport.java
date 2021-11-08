@@ -2034,6 +2034,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     //    int resetTime = 40;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
     InsertDB insert;
     final Timer timer = new Timer();
+    static String currentime="0";
     TimerTask Task = new TimerTask() {
         @Override
         public void run() {
@@ -2041,21 +2042,23 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             Date date = new Date(now);
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
             String getTime = dateFormat.format(date);
+            currentime = getTime;
             CURRENT_TIME = Integer.parseInt(getTime.substring(11, 13) + getTime.substring(14, 16) + getTime.substring(17));
             if(CURRENT_TIME>=240000){
                 CURRENT_TIME-=240000;
             }
             LOG.debug(SET_START_TIME + "셋 시작 시간" + CURRENT_TIME +" 현재 시간" + SET_END_TIME + "셋 끝 시간"+ getTime);
-//            if (SET_START_TIME <= CURRENT_TIME && SET_END_TIME >= CURRENT_TIME || (SET_END_TIME == 0 && SET_START_TIME == 0)) {
+            if (SET_START_TIME <= CURRENT_TIME && SET_END_TIME >= CURRENT_TIME || (SET_END_TIME == 0 && SET_START_TIME == 0)) {
 
                 LOG.debug("셋 시간 작동 중");
                 insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP + "", VIBRATION_TAG + "", DebugActivity.windowon);
-                if (VIBRATION_TAG > 0) {
+                if(VIBRATION_TAG>0){
                     VIBRATION_TAG++;
                 }
-                if( STEP_TIMER==0){
-                    VIBRATION_TAG = 0;        //진동이 꺼지면 초기화
+                if(STEP_TIMER==0){
+                    VIBRATION_TAG=0;
                 }
+
                 // 진동이 오는 동안 계속해서 1씩 더해줌. 10초동안 울리면 DB에 1~10으로 초당 저장
 
 
@@ -2077,12 +2080,12 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                     case NONE_MUTABILITY:
                         checkActivity(1, 1, NONE_MUTABILITY);
                 }
-//            } else {
-//                STEP_TIMER = -1;
-//                IN_TIME_STEP = 0;
-//                WEAR_NOTIFY_TIMER = 1;
-//                initial = true;
-//            }
+            } else {
+                STEP_TIMER = -1;
+                IN_TIME_STEP = 0;
+                WEAR_NOTIFY_TIMER = 1;
+                initial = true;
+            }
         }
     };
 
@@ -2115,6 +2118,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                         if (VIBRATION_TAG == 0) {
                             VIBRATION_TAG = 1;        //진동이 울리면 시작됐다고 표시
                         }
+                        insert.insertData(currentime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP + "", VIBRATION_TAG + "", DebugActivity.windowon);
                         cnt++;
                         if (cnt >= 1) {
                             cnt = 0;
