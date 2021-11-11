@@ -2103,7 +2103,6 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                 switch (casenum) {
 
                     case MUTABILITY:
-                    case NONE_MUTABILITY:
                         vibrateOnce();
                         if (VIBRATION_TAG == 0) {
                             VIBRATION_TAG = 1;        //진동이 울리면 시작됐다고 표시
@@ -2138,6 +2137,20 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                             timer.cancel();
                         }
                         break;
+                    case NONE_MUTABILITY:
+                        vibrateOnce();
+                        if (VIBRATION_TAG == 0) {
+                            VIBRATION_TAG = 1;        //진동이 울리면 시작됐다고 표시
+                        }
+                        cnt++;
+                        if (cnt >= 31) {
+                            cnt = 0;
+                            VIBRATION_TAG = 0;        //진동이 꺼지면 초기화
+                            DESTROY_NOTIFICATION = true;
+                            WATCH_VIB_SET = false;
+                            timer.cancel();
+                        }
+                        break;
                 }
             }
         };
@@ -2161,7 +2174,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
         LOG.debug("check activity >> IS_NOTIFY: " + IS_NOTIFY + " DESTROY NOTIFI:" + DESTROY_NOTIFICATION );
         if (HuamiSupport.HEART_RATE > 0) {
 
-            if(0<IN_TIME_STEP && IN_TIME_STEP<=10 && STEP_TIMER==90){
+            if(0<IN_TIME_STEP && IN_TIME_STEP<=10 && STEP_TIMER%120==0){
                     IN_TIME_STEP=0;
             }
 
@@ -2227,12 +2240,12 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                 }
 
                 // case : NON_MUTABILITY
-                if (casenum == NONE_MUTABILITY) {
-                    if (STEP_TIMER > 90) {
-                        DESTROY_NOTIFICATION = true;
-                        WATCH_VIB_SET = false;
-                    }
-                }
+//                if (casenum == NONE_MUTABILITY) {
+//                    if (STEP_TIMER > 90) {
+//                        DESTROY_NOTIFICATION = true;
+//                        WATCH_VIB_SET = false;
+//                    }
+//                }
             }
 
             if (STEP_TIMER >= RESET_TIME) {
