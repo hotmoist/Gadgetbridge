@@ -1893,7 +1893,8 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
 //        }
     }
 
-    public static boolean connect=true;
+    public static boolean IS_CONNECT = false;
+    public static boolean IS_WEAR = false;
     private RealtimeSamplesSupport getRealtimeSamplesSupport() {
 
         if (realtimeSamplesSupport == null) {
@@ -1921,6 +1922,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                     }
                     try {
                         if (HuamiSupport.super.isConnected()) {
+                            IS_CONNECT = true;
                             TransactionBuilder builder = performInitialized("Continue heart rate measurement");
                             builder.write(characteristicHRControlPoint, continueHeartMeasurementContinuous);
                             builder.queue(getQueue());
@@ -1956,6 +1958,11 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                         /*-------------------------------------*/
 //                        sample.setHeartRate(getHeartrateBpm());
                         HEART_RATE = sample.getHeartRate();
+                        if (HEART_RATE > 0) {
+                            IS_WEAR = true;
+                        }else {
+                            IS_WEAR = false;
+                        }
                         if (sample.getSteps() > -1) {
                             steps += sample.getSteps();
                         }
@@ -2051,7 +2058,8 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             if (SET_START_TIME <= CURRENT_TIME && SET_END_TIME >= CURRENT_TIME || (SET_END_TIME == 0 && SET_START_TIME == 0)) {
 
                 LOG.debug("셋 시간 작동 중");
-                insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP + "", VIBRATION_TAG + "", DebugActivity.windowon);
+//                insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP + "", VIBRATION_TAG + "", DebugActivity.windowon);
+                insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP + "", VIBRATION_TAG + "");
                 if(VIBRATION_TAG>0){
                     VIBRATION_TAG++;
                 }
@@ -2118,7 +2126,8 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                         if (VIBRATION_TAG == 0) {
                             VIBRATION_TAG = 1;        //진동이 울리면 시작됐다고 표시
                         }
-                        insert.insertData(currentime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP + "", VIBRATION_TAG + "", DebugActivity.windowon);
+//                        insert.insertData(currentime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP + "", VIBRATION_TAG + "", DebugActivity.windowon);
+                        insert.insertData(currentime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP + "", VIBRATION_TAG + "");
                         cnt++;
                         if (cnt >= 1) {
                             cnt = 0;
