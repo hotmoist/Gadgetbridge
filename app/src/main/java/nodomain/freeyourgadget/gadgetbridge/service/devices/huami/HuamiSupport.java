@@ -2046,6 +2046,10 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             CURRENT_TIME = Integer.parseInt(getTime.substring(11, 13) + getTime.substring(14, 16) + getTime.substring(17));
             if(CURRENT_TIME>=240000){
                 CURRENT_TIME-=240000;
+                StringBuffer time = new StringBuffer(getTime);
+                time.setCharAt(11,'0');
+                time.setCharAt(12,'0');
+                getTime=time.toString();
             }
             LOG.debug(SET_START_TIME + "셋 시작 시간" + CURRENT_TIME +" 현재 시간" + SET_END_TIME + "셋 끝 시간"+ getTime);
             if (SET_START_TIME <= CURRENT_TIME && SET_END_TIME >= CURRENT_TIME || (SET_END_TIME == 0 && SET_START_TIME == 0)) {

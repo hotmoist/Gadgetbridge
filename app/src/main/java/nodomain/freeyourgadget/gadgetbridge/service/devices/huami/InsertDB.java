@@ -38,7 +38,7 @@ public class InsertDB {
         this.context = context;
     }
 
-    InsertDB(Context context) {
+    public InsertDB(Context context) {
         this.context=context;
     }
 

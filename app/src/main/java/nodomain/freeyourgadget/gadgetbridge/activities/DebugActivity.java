@@ -80,7 +80,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -97,6 +99,7 @@ import nodomain.freeyourgadget.gadgetbridge.devices.DeviceManager;
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice;
 import nodomain.freeyourgadget.gadgetbridge.model.ActivitySample;
 import nodomain.freeyourgadget.gadgetbridge.model.DeviceService;
+import nodomain.freeyourgadget.gadgetbridge.service.devices.huami.InsertDB;
 import nodomain.freeyourgadget.gadgetbridge.util.AndroidUtils;
 import nodomain.freeyourgadget.gadgetbridge.util.GB;
 import nodomain.freeyourgadget.gadgetbridge.util.Prefs;
@@ -472,6 +475,7 @@ public class DebugActivity extends AbstractGBActivity {
                 timeShow.setVisibility(View.VISIBLE);
             }
         });
+
         setVibrationTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -521,6 +525,14 @@ public class DebugActivity extends AbstractGBActivity {
                     if(newStartHour.equals("0")&&newStartMiunite.equals("0")&&newEndHour.equals("0")&&newEndMiunite.equals("0")){
                         activationTimePeriod.setText("활동 시간\n\n항상 활성화");
                     }
+
+                    InsertDB insert= new InsertDB(DebugActivity.this);
+                    long now = System.currentTimeMillis();
+                    Date date = new Date(now);
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+                    String getTime = dateFormat.format(date);
+                    insert.insertData(getTime + "", newStartHour+"", newStartMiunite+"", "to", newEndHour+"", newEndMiunite+"", "on");
+
                 } else {
                     newStartHour = "00";
                     newStartMiunite = "00";
@@ -531,9 +543,7 @@ public class DebugActivity extends AbstractGBActivity {
             }
         });
 
-
         new TimeThread().start();
-
         Button caseSetButton = findViewById(R.id.setLabCase);
         caseSetButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -551,6 +561,7 @@ public class DebugActivity extends AbstractGBActivity {
                     HuamiSupport.CASES = HuamiSupport.NONE_MUTABILITY;
                 }
                 saveTime(1);
+
             }
         });
         Button setPeriodButton = findViewById(R.id.setVibPeriod);
