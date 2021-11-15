@@ -33,8 +33,9 @@
                     android:id="@+id/run_message"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="#000000"
+                    android:textColor="#ff0000"
                     android:gravity="center"
+                    android:textSize="20dp"
                     android:text="심박수가 측정되지 않습니다."/>
             </LinearLayout>
             <LinearLayout
