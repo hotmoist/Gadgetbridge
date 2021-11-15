@@ -204,6 +204,11 @@ public class DebugActivity extends AbstractGBActivity {
                         timePeriod.animate().alpha(0.0f);
                         deviceListView.animate().alpha(1.0f);
                         deviceListView.setVisibility(View.VISIBLE);
+                        if(!HuamiSupport.IS_CONNECT){
+                            runMessage.setText("워치와 연결이 끊겨있습니다");
+                        }else if(HuamiSupport.IS_CONNECT && !HuamiSupport.IS_WEAR){
+                            runMessage.setText("워치를 착용해주세요");
+                        }
                         runMessage.setVisibility(View.VISIBLE);
                         fab.setVisibility(View.VISIBLE);
                     }else{
@@ -412,29 +417,16 @@ public class DebugActivity extends AbstractGBActivity {
         sendEndMinuteSpinner.setAdapter(endMinuteSpinnerAdopter);
 
 
-
-
-//        HRvalText = (TextView) findViewById(R.id.realtimeHR);
-//        StepText = (TextView) findViewById(R.id.realtimeSteps);
         timePeriod = (TextView) findViewById(R.id.timePeriod);
         inTimeStep = (TextView) findViewById(R.id.inTimeStep);
         currentCase = (TextView) findViewById(R.id.currentCase);
 
-//        startHour = findViewById(R.id.startHour);
-//        startminute = findViewById(R.id.startMinute);
-//        endHour = findViewById(R.id.endHour);
-//        endminute = findViewById(R.id.endMinute);
         setVibrationTime = findViewById(R.id.setVibrationTime);
         activationTimePeriod = findViewById(R.id.activationTimePeriod);
         timeShow = findViewById(R.id.time_show);
 
         vibrationTimePeriod = findViewById(R.id.vibrationTimePeriod);
         runMessage = findViewById(R.id.run_message);
-        // 커서 부분 제거
-//        startHour.setCursorVisible(false);
-//        startminute.setCursorVisible(false);
-//        endHour.setCursorVisible(false);
-//        endminute.setCursorVisible(false);
 
         // 시작 시간과 종료시간이 지정된 경우
         appData = getSharedPreferences("appData", MODE_PRIVATE);
@@ -442,10 +434,6 @@ public class DebugActivity extends AbstractGBActivity {
 
         if (isSetVibrationTime) {
             // 이전에 시간이 저장된 경우가 있으면 세팅
-//            startHour.setText(newStartHour);
-//            startminute.setText(newStartMiunite);
-//            endHour.setText(newEndHour);
-//            endminute.setText(newEndMiunite);
             HuamiSupport.SET_START_TIME = Integer.parseInt(newStartHour + newStartMiunite + "000");
             HuamiSupport.SET_END_TIME = Integer.parseInt(newEndHour + newEndMiunite + "000");
         }
