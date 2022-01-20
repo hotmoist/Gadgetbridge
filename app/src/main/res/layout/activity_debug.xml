@@ -271,6 +271,7 @@
                             grid:layout_columnSpan="1" />
                     </LinearLayout>
                     <LinearLayout
+                        android:id="@+id/setLabCaseLayer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"

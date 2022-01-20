@@ -425,6 +425,12 @@ public class DebugActivity extends AbstractGBActivity {
 //        endHour = findViewById(R.id.endHour);
 //        endminute = findViewById(R.id.endMinute);
         setVibrationTime = findViewById(R.id.setVibrationTime);
+
+        /**
+         * 케이스 설정 화면 보이게/안보이기 설정
+         */
+        findViewById(R.id.setLabCaseLayer).setVisibility(View.GONE);
+
         activationTimePeriod = findViewById(R.id.activationTimePeriod);
         timeShow = findViewById(R.id.time_show);
 
@@ -531,7 +537,7 @@ public class DebugActivity extends AbstractGBActivity {
                     Date date = new Date(now);
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
                     String getTime = dateFormat.format(date);
-                    insert.insertData(getTime + "", newStartHour+"", newStartMiunite+"", "to", newEndHour+"", newEndMiunite+"", "on");
+                    insert.insertData(getTime + "", newStartHour+"", newStartMiunite+"", "to", newEndHour+"", newEndMiunite+"", option.getCase()+"");
 
                 } else {
                     newStartHour = "00";
@@ -743,8 +749,10 @@ public class DebugActivity extends AbstractGBActivity {
 //
 //        timerImage.startAnimation(anim);
 
-
-//        HuamiSupport.CASES=option.getCase();
+/**
+ * 세팅해주는 코드
+ */
+        HuamiSupport.CASES=option.getCase();
         HuamiSupport.RESET_TIME=option.getTime();
 
 
