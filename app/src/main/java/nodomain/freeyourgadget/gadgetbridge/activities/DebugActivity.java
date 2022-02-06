@@ -162,24 +162,105 @@ public class DebugActivity extends AbstractGBActivity {
         }
     }
 
-    public static void notifi(Context context) {
-        new AlertDialog.Builder(context)
-                .setMessage("Test")
-                .setPositiveButton("dismiss", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        GB.toast("pressed", GB.INFO, Toast.LENGTH_LONG);
+//    public static void notifi(Context context) {
+//        new AlertDialog.Builder(context)
+//                .setMessage("Test")
+//                .setPositiveButton("dismiss", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        GB.toast("pressed", GB.INFO, Toast.LENGTH_LONG);
+//                    }
+//                }).show();
+//    }
+
+    /**
+     * 2022-02-06 수정코드
+     *
+     * TimeTread를 task로 바꾼 코드
+     */
+
+    public void TimerTask() {
+        final Timer timer = new Timer();
+        TimerTask Task = new TimerTask() {
+
+            @Override
+            public void run() {
+                if (HuamiSupport.STEP_TIMER == 1 && !TIMER_UI) {
+//                    timerImage.clearAnimation();
+                    RotateAnimation anim =
+                            new RotateAnimation(45, 405, timerImage.getWidth() / 2, timerImage.getHeight() / 2);
+                    anim.setDuration(HuamiSupport.RESET_TIME * 1000 - HuamiSupport.STEP_TIMER * 1000);//에니메이션 지속시간
+                    anim.setInterpolator(new LinearInterpolator());
+                    anim.setDuration(HuamiSupport.RESET_TIME * 1000);
+                    timerImage.startAnimation(anim);
+                    TIMER_UI = true;
+                }
+                if (HuamiSupport.HEART_RATE > 0 ){
+                        destroyNotification(13009);
                     }
-                }).show();
+
+                    if (HuamiSupport.IS_NOTIFY) {
+//                        LOG.debug("check Activity >> notify on");
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                HuamiSupport.IS_NOTIFY = false;
+                            }
+                        });
+                    } else if (HuamiSupport.WEAR_NOTIFY_TIMER % 60 == 0) {
+                        // 60초 마다 워치 착용 여부 감지
+                        LOG.debug("check Activity >> notify: " + HuamiSupport.WEAR_NOTIFY_TIMER);
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Intent intent = new Intent(getApplicationContext(),DebugActivity.class);
+                                createNotification(DEFAULT, 13009, "워치를 착용 및 연결해 주세요", "워치 착용(및 연결)이 감지되지 않았습니다. 워치를 착용해주세요", intent);
+                                HuamiSupport.WEAR_NOTIFY_TIMER = 1;
+
+//                                if(!HuamiSupport.connect){
+//                                    try {
+//                                        Thread.sleep(2000);
+//                                        System.exit(0);
+//                                    } catch (InterruptedException e) {
+//                                        e.printStackTrace();
+//                                    }
+//                                }
+                            }
+                        });
+                    } else {
+//                        LOG.debug("check Activity >> notify pending");
+                        if (HuamiSupport.DESTROY_NOTIFICATION) {
+                            destroyNotification(1259);
+                            HuamiSupport.DESTROY_NOTIFICATION = false;
+                        }
+                    }
+                Message msg = new Message();
+                msg.what = 1;
+                handler.sendMessage(msg);
+
+            }
+        };
+        timer.schedule(Task,0,1000);
     }
+
 
     public class TimeThread extends Thread {
         @Override
         public void run() {
             super.run();
             do {
+                if(HuamiSupport.STEP_TIMER==1&&!TIMER_UI){
+//                    timerImage.clearAnimation();
+                    RotateAnimation anim =
+                            new RotateAnimation(45, 405,timerImage.getWidth()/2,timerImage.getHeight()/2);
+                    anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);//에니메이션 지속시간
+                    anim.setInterpolator(new LinearInterpolator());
+                    anim.setDuration(HuamiSupport.RESET_TIME*1000);
+                    timerImage.startAnimation(anim);
+                    TIMER_UI=true;
+                }
                 try {
-                    Thread.sleep(999);
+                    Thread.sleep(1000);
                     Message msg = new Message();
                     msg.what = 1;
                     handler.sendMessage(msg);
@@ -384,7 +465,6 @@ public class DebugActivity extends AbstractGBActivity {
 
         String[] hourCases = new String[24];
         String[] minuteCases = new String[60];
-
         for(int i = 0; i < hourCases.length; i++){
             hourCases[i] = i +"";
         }
@@ -537,7 +617,13 @@ public class DebugActivity extends AbstractGBActivity {
             }
         });
 
-        new TimeThread().start();
+        /**
+         * 2022-02-06 수정코드
+         */
+//        new TimeThread().start();
+//        TimerTask();
+
+
         Button caseSetButton = findViewById(R.id.setLabCase);
         caseSetButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -576,28 +662,6 @@ public class DebugActivity extends AbstractGBActivity {
         Intent intent = new Intent(this, DebugActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
-//        Button sendEmail = findViewById(R.id.sendEmail);
-//        sendEmail.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent email = new Intent(Intent.ACTION_SEND);
-//                email.setType("plain/text");
-//                String[] address = {"ljy9805@gmail.com"};
-//                email.putExtra(Intent.EXTRA_EMAIL, address);
-//                email.putExtra(Intent.EXTRA_SUBJECT, "Daily Report");
-//                email.putExtra(Intent.EXTRA_TEXT, "하루동안 알람을 받은 횟수는 몇회입니까?\n1. 0~2회 \n2.3~4회\n5회이상\n\n실험을 하면서 기능적으로 문제가 되었던 부분이 있으면 작성해주세요.");
-//                startActivity(email);
-//            }
-//        });
-
-//        Button dataTest = findViewById(R.id.sendDataBase);
-//        dataTest.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                InsertDB insertDB = new InsertDB(DebugActivity.this);
-//                insertDB.insertData("1", "1", "1", "1");
-//            }
-//        });
 
 
         deviceManager = ((GBApplication) getApplication()).getDeviceManager();
@@ -664,13 +728,25 @@ public class DebugActivity extends AbstractGBActivity {
         }
 
 
+/**
+ *
+ * 2022-1-28
+ *
+ *
+ *
+ */
 
+//        new Thread(new Runnable() {
+//
+//            @Override
+//            public void run() {
 
-        new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                notiTimer();
+        /**
+         * 2가지 해보기 notiTimer를 주석처리없이 하나만 실행하기
+         *
+         * 지금 코드 그대로 실행해보기
+         */
+//        notiTimer();
 //                while (true) {
 ////                    if (HuamiSupport.CONNECTION == 1){
 ////                        // 연결이 감지 된 경우 연결 notifi 삭제
@@ -723,8 +799,8 @@ public class DebugActivity extends AbstractGBActivity {
 //                        e.printStackTrace();
 //                    }
 //                }
-            }
-        }).start();
+//            }
+//        }).start();
 
         timerImage = findViewById(R.id.imageView1);
 
@@ -766,6 +842,14 @@ public class DebugActivity extends AbstractGBActivity {
         }
     }
 
+    /**
+     * 1초에 한번씩 ui 변경
+     *
+     *
+     * test 후에 전부다 백그라운드로 옮겨버리자
+     *
+     * 1000->100으로
+     */
     void notiTimer() {
         Timer notifyTimer = new Timer();
         TimerTask notifyTast = new TimerTask() {
@@ -788,49 +872,50 @@ public class DebugActivity extends AbstractGBActivity {
                     timerImage.startAnimation(anim);
                     TIMER_UI=true;
                 }
-                if (HuamiSupport.HEART_RATE > 0) {
-                    destroyNotification(13009);
-                }
 
-                if (HuamiSupport.IS_NOTIFY) {
-//                        LOG.debug("check Activity >> notify on");
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            createNotification(DEFAULT, 1259, "운동하세요", "어깨 돌리기 10회 이상 실시!", intent);
-                            HuamiSupport.IS_NOTIFY = false;
-                        }
-                    });
-                } else if (HuamiSupport.WEAR_NOTIFY_TIMER % 60 == 0) {
-                    // 60초 마다 워치 착용 여부 감지
-                    LOG.debug("check Activity >> notify: " + HuamiSupport.WEAR_NOTIFY_TIMER);
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            createNotification(DEFAULT, 13009, "워치를 착용 및 연결해 주세요", "워치 착용(및 연결)이 감지되지 않았습니다. 워치를 착용해주세요", intent);
-                            HuamiSupport.WEAR_NOTIFY_TIMER = 1;
-
-//                                if(!HuamiSupport.connect){
-//                                    try {
-//                                        Thread.sleep(2000);
-//                                        System.exit(0);
-//                                    } catch (InterruptedException e) {
-//                                        e.printStackTrace();
-//                                    }
-//                                }
-                        }
-                    });
-                } else {
-//                        LOG.debug("check Activity >> notify pending");
-                    if (HuamiSupport.DESTROY_NOTIFICATION) {
-                        destroyNotification(1259);
-                        HuamiSupport.DESTROY_NOTIFICATION = false;
-                    }
-                }
+//                if (HuamiSupport.HEART_RATE > 0) {
+//                    destroyNotification(13009);
+//                }
+//
+//                if (HuamiSupport.IS_NOTIFY) {
+////                        LOG.debug("check Activity >> notify on");
+//                    mHandler.post(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            createNotification(DEFAULT, 1259, "운동하세요", "어깨 돌리기 10회 이상 실시!", intent);
+//                            HuamiSupport.IS_NOTIFY = false;
+//                        }
+//                    });
+//                } else if (HuamiSupport.WEAR_NOTIFY_TIMER % 60 == 0) {
+//                    // 60초 마다 워치 착용 여부 감지
+//                    LOG.debug("check Activity >> notify: " + HuamiSupport.WEAR_NOTIFY_TIMER);
+//                    mHandler.post(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            createNotification(DEFAULT, 13009, "워치를 착용 및 연결해 주세요", "워치 착용(및 연결)이 감지되지 않았습니다. 워치를 착용해주세요", intent);
+//                            HuamiSupport.WEAR_NOTIFY_TIMER = 1;
+//
+////                                if(!HuamiSupport.connect){
+////                                    try {
+////                                        Thread.sleep(2000);
+////                                        System.exit(0);
+////                                    } catch (InterruptedException e) {
+////                                        e.printStackTrace();
+////                                    }
+////                                }
+//                        }
+//                    });
+//                } else {
+////                        LOG.debug("check Activity >> notify pending");
+//                    if (HuamiSupport.DESTROY_NOTIFICATION) {
+//                        destroyNotification(1259);
+//                        HuamiSupport.DESTROY_NOTIFICATION = false;
+//                    }
+//                }
 
             }
         };
-        notifyTimer.schedule(notifyTast,0,100);
+        notifyTimer.schedule(notifyTast,0,1000);
     }
 
     @Override

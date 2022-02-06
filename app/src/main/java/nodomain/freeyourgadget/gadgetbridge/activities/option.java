@@ -6,8 +6,8 @@ public class option {
     private final static int FIVE_SECOND = 2;
     private final static int NONE_MUTABILITY = 3;
 
-    private static int cases=NONE_MUTABILITY;
-    private static int time= 2400;
+    private static int cases=ONE_SECOND;
+    private static int time= 600;
     private static String url="https://ljy897.cafe24.com/UserRegister9.php";
 
 

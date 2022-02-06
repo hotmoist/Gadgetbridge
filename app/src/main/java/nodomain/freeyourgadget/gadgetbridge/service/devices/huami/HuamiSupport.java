@@ -1918,6 +1918,8 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                             Thread.sleep(2000);
                         } catch (InterruptedException e) {
                         }
+                        useAutoConnect();
+
                         System.exit(0);
                     }
                     try {
@@ -1926,6 +1928,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                             TransactionBuilder builder = performInitialized("Continue heart rate measurement");
                             builder.write(characteristicHRControlPoint, continueHeartMeasurementContinuous);
                             builder.queue(getQueue());
+                            useAutoConnect();
                         } else {
                             TransactionBuilder builder = performInitialized("stop heart rate measurement");
                             builder.write(characteristicHRControlPoint, stopHeartMeasurementContinuous);
