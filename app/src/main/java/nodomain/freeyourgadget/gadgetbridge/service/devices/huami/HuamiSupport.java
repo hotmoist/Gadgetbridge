@@ -28,6 +28,8 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.RotateAnimation;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
@@ -184,8 +186,9 @@ import static nodomain.freeyourgadget.gadgetbridge.model.ActivityUser.PREF_USER_
 import static nodomain.freeyourgadget.gadgetbridge.service.btle.GattCharacteristic.UUID_CHARACTERISTIC_ALERT_LEVEL;
 
 
-public class HuamiSupport extends AbstractBTLEDeviceSupport {
+public class HuamiSupport extends AbstractBTLEDeviceSupport{
 
+    private boolean TIMER_UI = false;
     // We introduce key press counter for notification purposes
     private static int currentButtonActionId = 0;
     private static int currentButtonPressCount = 0;
@@ -2079,8 +2082,9 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                 //            LOG.debug("insert Debug : "+ stepTimer+""+HuamiSupport.HEART_RATE+""+HuamiSupport.TOTAL_STEP+""+(HuamiSupport.TOTAL_STEP - beforeStep)+"");
 //                LOG.debug("check Activity >> step timer: " + STEP_TIMER + ", heart rate: " + HuamiSupport.HEART_RATE + ", total step:" + HuamiSupport.TOTAL_STEP + ", step: " + IN_TIME_STEP + ", wear notify timer: " + WEAR_NOTIFY_TIMER + ", in time step : " + IN_TIME_STEP);
 //                LOG.debug("check Activity >> current case: " + CASES);
-
                 b_step = HuamiSupport.TOTAL_STEP;
+
+
                 switch (CASES) {           //실험 대상군 설정
                     case MUTABILITY:
                         checkActivity(1, 1, MUTABILITY);
