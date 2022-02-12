@@ -1909,20 +1909,6 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport{
                         HEART_RATE = 0;
 //                        connect=false;
                         WEAR_NOTIFY_TIMER = 60;
-                        try {
-                            Thread.sleep(1000);
-                            WEAR_NOTIFY_TIMER = 1;
-                            NotificationSpec notificationSpec = new NotificationSpec();
-                            notificationSpec.phoneNumber = "연결하세요";
-                            notificationSpec.body = "연결하세요";
-                            notificationSpec.sender =  "연결하세요";
-                            notificationSpec.subject =  "연결하세요";
-                            GBApplication.deviceService().onNotification(notificationSpec);
-                            Thread.sleep(2000);
-                        } catch (InterruptedException e) {
-                        }
-                        useAutoConnect();
-
                         System.exit(0);
                     }
                     try {
@@ -2188,6 +2174,12 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport{
     public static boolean DESTROY_NOTIFICATION = false;
     public static int WEAR_NOTIFY_TIMER = 0;
 
+    /**
+     * 활동 체크 --> 진동 종류에 따라 다름
+     * @param period
+     * @param time
+     * @param casenum
+     */
     void checkActivity(int period, int time, int casenum) {     //주기별 task설정
         LOG.debug("check activity >> IS_NOTIFY: " + IS_NOTIFY + " DESTROY NOTIFI:" + DESTROY_NOTIFICATION );
         if (HuamiSupport.HEART_RATE > 0) {
@@ -2602,17 +2594,6 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport{
         } catch (IOException ex) {
             LOG.error("Unable to toggle sensor reading MI", ex);
         }
-
-//        try{
-//            TransactionBuilder builder = performInitialized("Toggle sensor reading");
-//            builder.write(getCharacteristic(UUID.fromString("00000001-0000-3512-2118-0009af100700")), new byte[]{0x01,0x01,0x19});
-//            builder.write(getCharacteristic(UUID.fromString("00000001-0000-3512-2118-0009af100700")), new byte[]{0x02});
-////            builder.notify(getCharacteristic(UUID.fromString("00000002-0000-3512-2118-0009af100700"new byte[]{0x01,0x00});
-//            builder.queue(getQueue());
-//
-//        } catch (IOException ex){
-//            LOG.error("unable to toggle sensor reading MI", ex);
-//        }
     }
 
     @Override
@@ -3435,6 +3416,10 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport{
         requestBatteryInfo(builder);
     }
 
+    /**
+     * 밴드 연결시 실행되는 코드
+     * @param builder
+     */
     public void phase3Initialize(TransactionBuilder builder) {
         LOG.info("phase3Initialize...");
         setDateDisplay(builder);

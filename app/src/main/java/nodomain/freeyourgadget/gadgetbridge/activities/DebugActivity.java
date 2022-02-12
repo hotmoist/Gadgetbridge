@@ -253,6 +253,9 @@ public class DebugActivity extends AbstractGBActivity {
         Canvas canvas = new Canvas(bitmap);
         canvas.drawColor(Color.BLACK);
 
+        /**
+         * 시간 설정 스피너
+         */
         // time - start hour spinner
         ArrayAdapter<String> startHourSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, hourCases);
         sendStartHourSpinner = findViewById(R.id.startHourSpinner);
@@ -487,7 +490,6 @@ public class DebugActivity extends AbstractGBActivity {
                 cl.getLogDialog().show();
             } catch (Exception ignored) {
                 GB.toast(getBaseContext(), "Error showing Changelog", Toast.LENGTH_LONG, GB.ERROR);
-
             }
         }
         if (GB.isBluetoothEnabled() && deviceList.isEmpty() && Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
