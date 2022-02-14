@@ -25,6 +25,8 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetHost;
 import android.appwidget.AppWidgetManager;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -38,6 +40,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
@@ -99,6 +102,7 @@ import nodomain.freeyourgadget.gadgetbridge.devices.DeviceManager;
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice;
 import nodomain.freeyourgadget.gadgetbridge.model.ActivitySample;
 import nodomain.freeyourgadget.gadgetbridge.model.DeviceService;
+import nodomain.freeyourgadget.gadgetbridge.service.DeviceCommunicationService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huami.InsertDB;
 import nodomain.freeyourgadget.gadgetbridge.util.AndroidUtils;
 import nodomain.freeyourgadget.gadgetbridge.util.GB;
@@ -122,10 +126,10 @@ public class DebugActivity extends AbstractGBActivity {
     /**
      * ui 세팅 선
      */
-    public static ImageView timerImage=null;
+    public static ImageView timerImage = null;
     public static String windowon = "화면켜짐";
-    int imageX=0;
-    int imageY=0;
+    int imageX = 0;
+    int imageY = 0;
     Intent background;
     TimerTask Task = new TimerTask() {
         @Override
@@ -163,7 +167,7 @@ public class DebugActivity extends AbstractGBActivity {
     private boolean pesterWithPermissions = true;
     private static PhoneStateListener fakeStateListener;
     /**
-     *  활동 시간
+     * 활동 시간
      */
     private boolean isSetVibrationTime;
     String newStartHour;
@@ -186,9 +190,11 @@ public class DebugActivity extends AbstractGBActivity {
 
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+
         @Override
         public void onReceive(Context context, Intent intent) {
-            switch (Objects.requireNonNull(intent.getAction())) {
+            String action = "";
+            switch (Objects.requireNonNull(action = intent.getAction())) {
                 case ACTION_REPLY: {
                     Bundle remoteInput = RemoteInput.getResultsFromIntent(intent);
                     CharSequence reply = remoteInput.getCharSequence(EXTRA_REPLY);
@@ -208,7 +214,7 @@ public class DebugActivity extends AbstractGBActivity {
     private final BroadcastReceiver receiverUI = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if(intent.getAction().equals("Background")){
+            if (intent.getAction().equals("Background")) {
                 Message msg = new Message();
                 msg.what = 1;
                 handler.sendMessage(msg);
@@ -217,11 +223,69 @@ public class DebugActivity extends AbstractGBActivity {
         }
     };
 
+    /**
+     * TODO : braocastReciever을 이용하여 알림 구현
+     * -> 블루투스 연결이 끊긴 경우 ( : 이 부분은 외부에서 발생하는 이벤트로 감지)
+     * 외부에서 브로드케스트 감지 -> 알림으로 알림
+     */
+//    private final BroadcastReceiver bleConnectionReceiver = new BroadcastReceiver() {
+//        class Task extends AsyncTask<String, Integer, String> {
+//            private final PendingResult pendingResult;
+//            private final Intent intent;
+//
+//            Task(PendingResult _pendingResult, Intent _intent) {
+//                this.pendingResult = _pendingResult;
+//                this.intent = _intent;
+//            }
+//
+//            @Override
+//            protected String doInBackground(String... strings) {
+                // notification 백그라운드로 이동
+//                String action = intent.getAction();
+//                if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+//                if(!action.equals(BluetoothDevice.ACTION_ACL_CONNECTED) || !intent.hasExtra(BluetoothDevice.EXTRA_DEVICE)){
+//                if(BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)){
+                    // 연결 확인을 위한 test code
+//                    LOG.debug("/*****  before assert disconnection detected! notify! *********/");
+//                    assert(action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED));
+//                    LOG.debug("/*****  disconnection detected! notify! *********/");
+//                    createNotification(DEFAULT, 13009, "disconnect test", "test", intent);
+//                }
+//                }
+//                return null;
+//            }
+//
+//            @Override
+//            protected void onPostExecute(String s) {
+//                super.onPostExecute(s);
+//                pendingResult.finish();
+//            }
+//        }
+//
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            final PendingResult pendingResult = goAsync();
+//            try {
+//                Task asyncTask = new Task(pendingResult, intent);
+//                asyncTask.execute();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    };
+
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_debug);
+
+        /***** ble disconnection  receiver register *****/
+        // 브로드캐스트를 사용하기 위한 필터
+        // Android manifest에 등록이 되어있어서 따로 등록 x (뭔가 어디서 등록된거지 ?)
+//        IntentFilter disconnectionFilter = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+//        this.registerReceiver(bleConnectionReceiver, disconnectionFilter);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(ACTION_REPLY);
@@ -236,20 +300,20 @@ public class DebugActivity extends AbstractGBActivity {
         sendCaseSpinner.setAdapter(caseSpinnerArrayAdopter);
 
         // 진동 체크 주기 시간 spinner
-        String[] timeCases = {"1", "2", "3", "10", "20", "30","40","50","60"};
+        String[] timeCases = {"1", "2", "3", "10", "20", "30", "40", "50", "60"};
         ArrayAdapter<String> timePeriodSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, timeCases);
         sendVibPeriodSpinner = findViewById(R.id.sendVibPeriod);
         sendVibPeriodSpinner.setAdapter(timePeriodSpinnerAdopter);
 
         String[] hourCases = new String[24];
         String[] minuteCases = new String[60];
-        for(int i = 0; i < hourCases.length; i++){
-            hourCases[i] = i +"";
+        for (int i = 0; i < hourCases.length; i++) {
+            hourCases[i] = i + "";
         }
-        for(int i = 0; i <minuteCases.length; i++){
+        for (int i = 0; i < minuteCases.length; i++) {
             minuteCases[i] = i + "";
         }
-        Bitmap bitmap = Bitmap.createBitmap(800,800, Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         canvas.drawColor(Color.BLACK);
 
@@ -308,11 +372,11 @@ public class DebugActivity extends AbstractGBActivity {
         timeShow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                    timelayout.animate().alpha(1.0f);
-                    timelayout.setVisibility(View.VISIBLE);
-                    timelayout.animate().translationY(-50);
-                    timeShow.animate().alpha(0.0f);
-                    timeShow.setVisibility(View.GONE);
+                timelayout.animate().alpha(1.0f);
+                timelayout.setVisibility(View.VISIBLE);
+                timelayout.animate().translationY(-50);
+                timeShow.animate().alpha(0.0f);
+                timeShow.setVisibility(View.GONE);
             }
         });
 
@@ -382,16 +446,16 @@ public class DebugActivity extends AbstractGBActivity {
                     timeShow.animate().alpha(1.0f);
                     timeShow.setVisibility(View.VISIBLE);
 
-                    if(newStartHour.equals("0")&&newStartMiunite.equals("0")&&newEndHour.equals("0")&&newEndMiunite.equals("0")){
+                    if (newStartHour.equals("0") && newStartMiunite.equals("0") && newEndHour.equals("0") && newEndMiunite.equals("0")) {
                         activationTimePeriod.setText("활동 시간\n\n항상 활성화");
                     }
 
-                    InsertDB insert= new InsertDB(DebugActivity.this);
+                    InsertDB insert = new InsertDB(DebugActivity.this);
                     long now = System.currentTimeMillis();
                     Date date = new Date(now);
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
                     String getTime = dateFormat.format(date);
-                    insert.insertData(getTime + "", newStartHour+"", newStartMiunite+"", "to", newEndHour+"", newEndMiunite+"", option.getCase()+"");
+                    insert.insertData(getTime + "", newStartHour + "", newStartMiunite + "", "to", newEndHour + "", newEndMiunite + "", option.getCase() + "");
 
                 } else {
                     newStartHour = "00";
@@ -431,7 +495,7 @@ public class DebugActivity extends AbstractGBActivity {
                     HuamiSupport.CASES = HuamiSupport.ONE_SECOND;
                 } else if (selectedState.equals("FIVE SECOND")) {
                     HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
-                }else if (selectedState.equals("NON MUTABILITY")){
+                } else if (selectedState.equals("NON MUTABILITY")) {
                     HuamiSupport.CASES = HuamiSupport.NONE_MUTABILITY;
                 }
                 saveTime(1);
@@ -516,7 +580,6 @@ public class DebugActivity extends AbstractGBActivity {
         }
 
 
-
 //        BroadcastReceiver br = receiverUI;
 //        IntentFilter UiFilter = new IntentFilter();
 //        UiFilter.addAction("Background");
@@ -528,8 +591,8 @@ public class DebugActivity extends AbstractGBActivity {
         GBApplication.deviceService().start();
 //        timer = new Timer();
 //        timer.schedule(Task,0,1000);
-        HuamiSupport.CASES=option.getCase();
-        HuamiSupport.RESET_TIME=option.getTime();
+        HuamiSupport.CASES = option.getCase();
+        HuamiSupport.RESET_TIME = option.getTime();
     }
 
 
@@ -543,30 +606,30 @@ public class DebugActivity extends AbstractGBActivity {
                 case 1:
 //                    HRvalText.setText("HR: " + HuamiSupport.HEART_RATE + "bpm");
 //                    StepText.setText("TOTAL STEP : " + HuamiSupport.TOTAL_STEP);
-                    if(HuamiSupport.STEP_TIMER==1&&!TIMER_UI){
+                    if (HuamiSupport.STEP_TIMER == 1 && !TIMER_UI) {
 //                    timerImage.clearAnimation();
                         RotateAnimation anim =
-                                new RotateAnimation(45, 405,timerImage.getWidth()/2,timerImage.getHeight()/2);
-                        anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);//에니메이션 지속시간
+                                new RotateAnimation(45, 405, timerImage.getWidth() / 2, timerImage.getHeight() / 2);
+                        anim.setDuration(HuamiSupport.RESET_TIME * 1000 - HuamiSupport.STEP_TIMER * 1000);//에니메이션 지속시간
                         anim.setInterpolator(new LinearInterpolator());
-                        anim.setDuration(HuamiSupport.RESET_TIME*1000);
+                        anim.setDuration(HuamiSupport.RESET_TIME * 1000);
                         timerImage.startAnimation(anim);
-                        TIMER_UI=true;
+                        TIMER_UI = true;
                     }
-                    if((HuamiSupport.STEP_TIMER) % 60 == -1){
+                    if ((HuamiSupport.STEP_TIMER) % 60 == -1) {
                         timePeriod.setVisibility(View.GONE);
                         timePeriod.animate().alpha(0.0f);
                         deviceListView.animate().alpha(1.0f);
                         deviceListView.setVisibility(View.VISIBLE);
-                        if(!HuamiSupport.IS_CONNECT){
+                        if (!HuamiSupport.IS_CONNECT) {
                             runMessage.setText("워치와 연결이 끊겨있습니다");
-                        }else if(HuamiSupport.IS_CONNECT && !HuamiSupport.IS_WEAR){
+                        } else if (HuamiSupport.IS_CONNECT && !HuamiSupport.IS_WEAR) {
                             runMessage.setText("워치를 착용해주세요");
                         }
                         runMessage.setVisibility(View.VISIBLE);
                         fab.setVisibility(View.VISIBLE);
-                    }else{
-                        timePeriod.setText((int)((HuamiSupport.RESET_TIME/60-1)-(HuamiSupport.STEP_TIMER / 60)) + ":" + (60 - (HuamiSupport.STEP_TIMER) % 60));
+                    } else {
+                        timePeriod.setText((int) ((HuamiSupport.RESET_TIME / 60 - 1) - (HuamiSupport.STEP_TIMER / 60)) + ":" + (60 - (HuamiSupport.STEP_TIMER) % 60));
                         timePeriod.setVisibility(View.VISIBLE);
                         timePeriod.animate().alpha(1.0f);
                         deviceListView.animate().alpha(0.0f);
@@ -575,11 +638,11 @@ public class DebugActivity extends AbstractGBActivity {
                         fab.setVisibility(View.GONE);
                     }
                     inTimeStep.setText("\n" + HuamiSupport.IN_TIME_STEP);
-                    activationTimePeriod.setText("활동 시간\n\n" + newStartHour +":" + newStartMiunite + " - " + newEndHour +":" + newEndMiunite);
-                    if(newStartHour.equals("0")&&newStartMiunite.equals("0")&&newEndHour.equals("0")&&newEndMiunite.equals("0")){
+                    activationTimePeriod.setText("활동 시간\n\n" + newStartHour + ":" + newStartMiunite + " - " + newEndHour + ":" + newEndMiunite);
+                    if (newStartHour.equals("0") && newStartMiunite.equals("0") && newEndHour.equals("0") && newEndMiunite.equals("0")) {
                         activationTimePeriod.setText("활동 시간\n\n항상 활성화");
                     }
-                    vibrationTimePeriod.setText("설정 주기 간격: " + (HuamiSupport.RESET_TIME/60));
+                    vibrationTimePeriod.setText("설정 주기 간격: " + (HuamiSupport.RESET_TIME / 60));
                     if (HuamiSupport.CASES == HuamiSupport.NONE) {
                         currentCase.setText("Current case: NONE");
                     } else if (HuamiSupport.CASES == HuamiSupport.MUTABILITY) {
@@ -588,7 +651,7 @@ public class DebugActivity extends AbstractGBActivity {
                         currentCase.setText("Current case: One Second");
                     } else if (HuamiSupport.CASES == HuamiSupport.FIVE_SECOND) {
                         currentCase.setText("Current case: Five Second");
-                    }else if (HuamiSupport.CASES == HuamiSupport.NONE_MUTABILITY){
+                    } else if (HuamiSupport.CASES == HuamiSupport.NONE_MUTABILITY) {
                         currentCase.setText("current case: None Mutability");
                     }
                     break;
@@ -602,6 +665,13 @@ public class DebugActivity extends AbstractGBActivity {
             ActivitySample sample = (ActivitySample) extra;
         }
     }
+
+
+    /**
+     * TODO : Broadcast Reciever을 이용한 notification 구현
+     * 외부 event : 블루투스 연결 끊김
+     */
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     void createNotificationChannel(String channelID, String channelName, int importance) {
         if (Build.VERSION.SDK_INT >= (Build.VERSION_CODES.BASE - 1)) {
@@ -609,6 +679,7 @@ public class DebugActivity extends AbstractGBActivity {
             notificationManager.createNotificationChannel(new NotificationChannel(channelID, channelName, importance));
         }
     }
+
     void createNotification(String channelID, int id, String title, String text, Intent intent) {
         PendingIntent pendingIntent = PendingIntent.getActivities(this, 0, new Intent[]{intent}, PendingIntent.FLAG_CANCEL_CURRENT);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelID)
@@ -632,25 +703,22 @@ public class DebugActivity extends AbstractGBActivity {
 
     /**
      * 시간 저장
+     *
      * @param t
      */
-    private void saveTime(int t){
+    private void saveTime(int t) {
         SharedPreferences.Editor editor = appData.edit();
-        if(t == 1) {
+        if (t == 1) {
             // t == 1일때만 lab case 저장
             editor.putString("LabCase", selectedState);
-        }
-
-        else if(t ==2) {
+        } else if (t == 2) {
             // t == 2일때 활동 시간 지정정
             editor.putBoolean("SAVE_VIB_TIME", true);
             editor.putString("newStartHour", sendStartHourSpinner.getSelectedItem().toString().trim());
             editor.putString("newStartMinute", sendStartMinuteSpinner.getSelectedItem().toString().trim());
             editor.putString("newEndHour", sendEndHourSpinner.getSelectedItem().toString().trim());
             editor.putString("newEndMinute", sendEndMinuteSpinner.getSelectedItem().toString().trim());
-        }
-
-        else if(t==3){
+        } else if (t == 3) {
             // t == 3 일때 주기 불러오기
             editor.putInt("newVibPeriod", Integer.parseInt(sendVibPeriodSpinner.getSelectedItem().toString()));
         }
@@ -660,25 +728,25 @@ public class DebugActivity extends AbstractGBActivity {
     /**
      * 시간 불러오기
      */
-    private void loadTime(){
+    private void loadTime() {
         isSetVibrationTime = appData.getBoolean("SAVE_VIB_TIME", false);
         newStartHour = appData.getString("newStartHour", "");
         newStartMiunite = appData.getString("newStartMinute", "");
         newEndHour = appData.getString("newEndHour", "");
         newEndMiunite = appData.getString("newEndMinute", "");
-        HuamiSupport.RESET_TIME=appData.getInt("newVibPeriod",10)*60;
+        HuamiSupport.RESET_TIME = appData.getInt("newVibPeriod", 10) * 60;
 
         String loadedCase = appData.getString("LabCase", "NONE");
-        if (loadedCase.equals("NONE")){
+        if (loadedCase.equals("NONE")) {
             HuamiSupport.CASES = HuamiSupport.NONE;
 //            currentCase.setText("current case: NONE");
-        }else if(loadedCase.equals("MUTABILITY")){
+        } else if (loadedCase.equals("MUTABILITY")) {
             HuamiSupport.CASES = HuamiSupport.MUTABILITY;
 //            currentCase.setText("Current case: Mutability");
-        }else if (loadedCase.equals("ONE SECOND")){
+        } else if (loadedCase.equals("ONE SECOND")) {
             HuamiSupport.CASES = HuamiSupport.ONE_SECOND;
 //            currentCase.setText("Current case: One Second");
-        }else if (loadedCase.equals("FIVE SECOND")){
+        } else if (loadedCase.equals("FIVE SECOND")) {
             HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
 //            currentCase.setText("Current case: Five Second");
         }
@@ -693,16 +761,19 @@ public class DebugActivity extends AbstractGBActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
         unregisterReceiver(mReceiver);
     }
+
     //add for research
     private void refreshPairedDevices() {
         mGBDeviceAdapter.notifyDataSetChanged();
     }
+
     @TargetApi(Build.VERSION_CODES.M)
     private void checkAndRequestPermissions() {
         List<String> wantedPermissions = new ArrayList<>();
@@ -803,6 +874,7 @@ public class DebugActivity extends AbstractGBActivity {
             telephonyManager.listen(fakeStateListener, PhoneStateListener.LISTEN_NONE);
         }
     }
+
     private ChangeLog createChangeLog() {
         String css = ChangeLog.DEFAULT_CSS;
         css += "body { "
@@ -811,47 +883,50 @@ public class DebugActivity extends AbstractGBActivity {
                 "}";
         return new ChangeLog(this, css);
     }
+
     /**
      * 어플 ui 관련
      */
     @Override
     protected void onStart() {
         super.onStart();
-        windowon="on";
+        windowon = "on";
     }
+
     @Override
     protected void onResume() {
         super.onResume();
-        if(HuamiSupport.STEP_TIMER>1){
+        if (HuamiSupport.STEP_TIMER > 1) {
             imageX = timerImage.getWidth();
             imageY = timerImage.getHeight();
             RotateAnimation anim =
-                    new RotateAnimation(405-360*(HuamiSupport.RESET_TIME-HuamiSupport.STEP_TIMER)/HuamiSupport.RESET_TIME, 405,timerImage.getWidth()/2,timerImage.getHeight()/2);
-            anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);//에니메이션 지속시간
+                    new RotateAnimation(405 - 360 * (HuamiSupport.RESET_TIME - HuamiSupport.STEP_TIMER) / HuamiSupport.RESET_TIME, 405, timerImage.getWidth() / 2, timerImage.getHeight() / 2);
+            anim.setDuration(HuamiSupport.RESET_TIME * 1000 - HuamiSupport.STEP_TIMER * 1000);//에니메이션 지속시간
             anim.setInterpolator(new LinearInterpolator());
             timerImage.startAnimation(anim);
         }
     }
+
     /**
      * 화면 변화에 따라 ui 변경
-     *
      */
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if(HuamiSupport.STEP_TIMER>1){
+        if (HuamiSupport.STEP_TIMER > 1) {
             imageX = timerImage.getWidth();
             imageY = timerImage.getHeight();
             RotateAnimation anim =
-                    new RotateAnimation(405-360*(HuamiSupport.RESET_TIME-HuamiSupport.STEP_TIMER)/HuamiSupport.RESET_TIME, 405,timerImage.getWidth()/2,timerImage.getHeight()/2);
-            anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);//에니메이션 지속시간
+                    new RotateAnimation(405 - 360 * (HuamiSupport.RESET_TIME - HuamiSupport.STEP_TIMER) / HuamiSupport.RESET_TIME, 405, timerImage.getWidth() / 2, timerImage.getHeight() / 2);
+            anim.setDuration(HuamiSupport.RESET_TIME * 1000 - HuamiSupport.STEP_TIMER * 1000);//에니메이션 지속시간
             anim.setInterpolator(new LinearInterpolator());
             timerImage.startAnimation(anim);
         }
     }
+
     @Override
     protected void onStop() {
         super.onStop();
-        windowon="close";
+        windowon = "close";
 //        stopService(background);
     }
 }
