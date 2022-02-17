@@ -17,6 +17,7 @@ package nodomain.freeyourgadget.gadgetbridge.activities;
 
 import android.Manifest;
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Notification;
@@ -202,17 +203,6 @@ public class DebugActivity extends AbstractGBActivity {
                 default:
                     LOG.info("ignoring intent action " + intent.getAction());
                     break;
-            }
-        }
-    };
-    private final BroadcastReceiver receiverUI = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if(intent.getAction().equals("Background")){
-                Message msg = new Message();
-                msg.what = 1;
-                handler.sendMessage(msg);
-                LOG.info("Background");
             }
         }
     };
@@ -537,6 +527,7 @@ public class DebugActivity extends AbstractGBActivity {
      * ui 및 여러가지 세팅 Handler
      */
     public Handler handler = new Handler(new Handler.Callback() {
+        @SuppressLint("SetTextI18n")
         @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
@@ -544,7 +535,8 @@ public class DebugActivity extends AbstractGBActivity {
 //                    HRvalText.setText("HR: " + HuamiSupport.HEART_RATE + "bpm");
 //                    StepText.setText("TOTAL STEP : " + HuamiSupport.TOTAL_STEP);
                     if(HuamiSupport.STEP_TIMER==1&&!TIMER_UI){
-//                    timerImage.clearAnimation();
+                        timerImage.clearAnimation();
+                        LOG.info("start reset");
                         RotateAnimation anim =
                                 new RotateAnimation(45, 405,timerImage.getWidth()/2,timerImage.getHeight()/2);
                         anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);//에니메이션 지속시간
@@ -565,6 +557,8 @@ public class DebugActivity extends AbstractGBActivity {
                         }
                         runMessage.setVisibility(View.VISIBLE);
                         fab.setVisibility(View.VISIBLE);
+                        timerImage.animate().cancel();
+                        timerImage.clearAnimation();
                     }else{
                         timePeriod.setText((int)((HuamiSupport.RESET_TIME/60-1)-(HuamiSupport.STEP_TIMER / 60)) + ":" + (60 - (HuamiSupport.STEP_TIMER) % 60));
                         timePeriod.setVisibility(View.VISIBLE);
@@ -576,7 +570,8 @@ public class DebugActivity extends AbstractGBActivity {
                     }
                     inTimeStep.setText("\n" + HuamiSupport.IN_TIME_STEP);
                     activationTimePeriod.setText("활동 시간\n\n" + newStartHour +":" + newStartMiunite + " - " + newEndHour +":" + newEndMiunite);
-                    if(newStartHour.equals("0")&&newStartMiunite.equals("0")&&newEndHour.equals("0")&&newEndMiunite.equals("0")){
+                    if(newStartHour.equals("0")&&newStartMiunite.equals("0")&&newEndHour.equals("0")&&newEndMiunite.equals("0")
+                       ||newStartHour.equals("00")&&newStartMiunite.equals("00")&&newEndHour.equals("00")&&newEndMiunite.equals("00")){
                         activationTimePeriod.setText("활동 시간\n\n항상 활성화");
                     }
                     vibrationTimePeriod.setText("설정 주기 간격: " + (HuamiSupport.RESET_TIME/60));
@@ -814,26 +809,22 @@ public class DebugActivity extends AbstractGBActivity {
     /**
      * 어플 ui 관련
      */
-    @Override
-    protected void onStart() {
-        super.onStart();
-        windowon="on";
-    }
+
     @Override
     protected void onResume() {
         super.onResume();
-        if(HuamiSupport.STEP_TIMER>1){
-            imageX = timerImage.getWidth();
-            imageY = timerImage.getHeight();
-            RotateAnimation anim =
-                    new RotateAnimation(405-360*(HuamiSupport.RESET_TIME-HuamiSupport.STEP_TIMER)/HuamiSupport.RESET_TIME, 405,timerImage.getWidth()/2,timerImage.getHeight()/2);
-            anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);//에니메이션 지속시간
-            anim.setInterpolator(new LinearInterpolator());
-            timerImage.startAnimation(anim);
-        }
+//        if(HuamiSupport.STEP_TIMER>1){
+//            imageX = timerImage.getWidth();
+//            imageY = timerImage.getHeight();
+//            RotateAnimation anim =
+//                    new RotateAnimation(405-360*(HuamiSupport.RESET_TIME-HuamiSupport.STEP_TIMER)/HuamiSupport.RESET_TIME, 405,timerImage.getWidth()/2,timerImage.getHeight()/2);
+//            anim.setDuration(HuamiSupport.RESET_TIME*1000-HuamiSupport.STEP_TIMER*1000);//에니메이션 지속시간
+//            anim.setInterpolator(new LinearInterpolator());
+//            timerImage.startAnimation(anim);
+//        }
     }
     /**
-     * 화면 변화에 따라 ui 변경
+     * 상태에 따라 ui 변경
      *
      */
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -848,10 +839,44 @@ public class DebugActivity extends AbstractGBActivity {
             timerImage.startAnimation(anim);
         }
     }
+    Thread thread= null;
+    @Override
+    protected void onStart() {
+        windowon="on";
+        super.onStart();
+        thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    while(true) {
+                            Message msg = new Message();
+                            msg.what = 1;
+                            handler.sendMessage(msg);
+                            thread.sleep(1000);
+                            LOG.info("start UI "+HuamiSupport.STEP_TIMER + !TIMER_UI);
+                    }
+                } catch (InterruptedException e) {
+                    LOG.info("interrupt success");
+
+                    e.printStackTrace();
+                }
+            }
+        }){
+            @Override
+            public void interrupt() {
+                super.interrupt();
+                LOG.info("interrupt");
+            }
+        };
+        thread.start();
+    }
     @Override
     protected void onStop() {
         super.onStop();
         windowon="close";
 //        stopService(background);
+        thread.interrupt();
+        LOG.info(thread.isAlive()+"interrupt");
     }
 }

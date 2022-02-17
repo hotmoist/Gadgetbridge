@@ -2089,6 +2089,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport{
                 IN_TIME_STEP = 0;
                 WEAR_NOTIFY_TIMER = 1;
                 initial = true;
+                DebugActivity.TIMER_UI = false;
             }
         }
     };
@@ -2269,6 +2270,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport{
             IN_TIME_STEP = 0;
             STEP_TIMER = -1;
             initial = true;
+            DebugActivity.TIMER_UI = false;
         }
     }
 
