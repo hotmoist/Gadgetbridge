@@ -125,22 +125,12 @@ public class DebugActivity extends AbstractGBActivity {
             = "nodomain.freeyourgadget.gadgetbridge.DebugActivity.action.reply";
 
     /**
-     * ui 세팅 선
+     * timerImage -> ui 부분
      */
     public static ImageView timerImage = null;
     public static String windowon = "화면켜짐";
     int imageX = 0;
     int imageY = 0;
-    Intent background;
-    TimerTask Task = new TimerTask() {
-        @Override
-        public void run() {
-            Message msg = new Message();
-            msg.what = 1;
-            handler.sendMessage(msg);
-        }
-    };
-
 
     private Spinner sendCaseSpinner;
     private Spinner sendVibPeriodSpinner;
@@ -168,7 +158,7 @@ public class DebugActivity extends AbstractGBActivity {
     private boolean pesterWithPermissions = true;
     private static PhoneStateListener fakeStateListener;
     /**
-     * 활동 시간
+     * 활동 시간 변수
      */
     private boolean isSetVibrationTime;
     String newStartHour;
@@ -177,7 +167,7 @@ public class DebugActivity extends AbstractGBActivity {
     String newEndMiunite;
     Handler mHandler;
     /**
-     * 진동 상태 세팅
+     * 진동 상태 세팅 변수
      */
     private final String DEFAULT = "DEFAULT";
     private SharedPreferences appData;
@@ -205,6 +195,13 @@ public class DebugActivity extends AbstractGBActivity {
                 }
                 case DeviceService.ACTION_REALTIME_SAMPLES:
                     handleRealtimeSample(intent.getSerializableExtra(DeviceService.EXTRA_REALTIME_SAMPLE));
+                    break;
+                case "support":
+                    if(windowon.equals("on")) {
+                        Message msg = new Message();
+                        msg.what = 1;
+                        handler.sendMessage(msg);
+                    }
                     break;
                 default:
                     LOG.info("ignoring intent action " + intent.getAction());
@@ -280,15 +277,22 @@ public class DebugActivity extends AbstractGBActivity {
         IntentFilter filter = new IntentFilter();
         filter.addAction(ACTION_REPLY);
         filter.addAction(DeviceService.ACTION_REALTIME_SAMPLES);
+        filter.addAction("support");
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
         registerReceiver(mReceiver, filter); // for ACTION_REPLY
 
+        /**
+         * 사용되지 않음
+         */
         // Lab cases spinner add
         String[] cases = {"NONE", "MUTABILITY", "ONE SECOND", "FIVE SECOND", "NON MUTABILITY"};
         ArrayAdapter<String> caseSpinnerArrayAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, cases);
         sendCaseSpinner = findViewById(R.id.sendCaseSpinner);
         sendCaseSpinner.setAdapter(caseSpinnerArrayAdopter);
 
+        /**
+         * 사용되지 않음
+         */
         // 진동 체크 주기 시간 spinner
         String[] timeCases = {"1", "2", "3", "10", "20", "30", "40", "50", "60"};
         ArrayAdapter<String> timePeriodSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, timeCases);
@@ -308,7 +312,7 @@ public class DebugActivity extends AbstractGBActivity {
         canvas.drawColor(Color.BLACK);
 
         /**
-         * 시간 설정 스피너
+         * 사용되지 않음
          */
         // time - start hour spinner
         ArrayAdapter<String> startHourSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, hourCases);
@@ -351,7 +355,7 @@ public class DebugActivity extends AbstractGBActivity {
         timerImage = findViewById(R.id.imageView1);
 
         /**
-         * 핸들러 사용
+         * 핸들러 생성
          */
         mHandler = new Handler();
 
@@ -371,7 +375,7 @@ public class DebugActivity extends AbstractGBActivity {
         });
 
         /**
-         * 시간 세팅 메뉴창 취
+         * 시간 세팅 메뉴창 취소버튼
          */
         cancel_setVibrationTime = findViewById(R.id.cancel_setVibrationTime);
         cancel_setVibrationTime.setOnClickListener(new View.OnClickListener() {
@@ -458,7 +462,7 @@ public class DebugActivity extends AbstractGBActivity {
         });
 
         /**
-         * 디바이스 추가 메뉴
+         * 디바이스 추가 메뉴 + 버튼
          */
         fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -492,6 +496,9 @@ public class DebugActivity extends AbstractGBActivity {
 
             }
         });
+        /**
+         * 사용되지 않음
+         */
         setPeriodButton = findViewById(R.id.setVibPeriod);
         setPeriodButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -552,13 +559,8 @@ public class DebugActivity extends AbstractGBActivity {
             GBApplication.deviceService().requestDeviceInfo();
         }
 
-
         /**
-         * UI 세팅
-         */
-
-
-        /**
+         * 이전에 설정해준 데이터를 저장해 뒀다가 불러올 때
          * 세팅해주는 코드
          */
         appData = getSharedPreferences("appData", MODE_PRIVATE);
@@ -902,45 +904,19 @@ public class DebugActivity extends AbstractGBActivity {
             timerImage.startAnimation(anim);
         }
     }
-    Thread thread= null;
+
+    /**
+     * 앱 시작시 ui를 컨트롤해 주는 쓰레드 실행
+     */
     @Override
     protected void onStart() {
-        windowon="on";
         super.onStart();
-        thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                try {
-                    while(true) {
-                            Message msg = new Message();
-                            msg.what = 1;
-                            handler.sendMessage(msg);
-                            thread.sleep(1000);
-                            LOG.info("start UI "+HuamiSupport.STEP_TIMER + !TIMER_UI);
-                    }
-                } catch (InterruptedException e) {
-                    LOG.info("interrupt success");
-
-                    e.printStackTrace();
-                }
-            }
-        }){
-            @Override
-            public void interrupt() {
-                super.interrupt();
-                LOG.info("interrupt");
-            }
-        };
-        thread.start();
+        windowon="on";
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         windowon = "close";
-//        stopService(background);
-        thread.interrupt();
-        LOG.info(thread.isAlive()+"interrupt");
     }
 }

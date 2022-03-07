@@ -83,7 +83,6 @@ public class InsertDB {
             queue.getCache().invalidate(option.getUrl(),true);
             registerRequest.cancel();
             queue.stop();
-
         }catch (Exception e){
             e.printStackTrace();
         }
