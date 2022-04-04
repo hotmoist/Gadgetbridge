@@ -197,7 +197,7 @@ public class DebugActivity extends AbstractGBActivity {
                     handleRealtimeSample(intent.getSerializableExtra(DeviceService.EXTRA_REALTIME_SAMPLE));
                     break;
                 case "support":
-                    if(windowon.equals("on")) {
+                    if (windowon.equals("on")) {
                         Message msg = new Message();
                         msg.what = 1;
                         handler.sendMessage(msg);
@@ -215,51 +215,56 @@ public class DebugActivity extends AbstractGBActivity {
      * -> 블루투스 연결이 끊긴 경우 ( : 이 부분은 외부에서 발생하는 이벤트로 감지)
      * 외부에서 브로드케스트 감지 -> 알림으로 알림
      */
-//    private final BroadcastReceiver bleConnectionReceiver = new BroadcastReceiver() {
-//        class Task extends AsyncTask<String, Integer, String> {
-//            private final PendingResult pendingResult;
-//            private final Intent intent;
-//
-//            Task(PendingResult _pendingResult, Intent _intent) {
-//                this.pendingResult = _pendingResult;
-//                this.intent = _intent;
-//            }
-//
-//            @Override
-//            protected String doInBackground(String... strings) {
-                // notification 백그라운드로 이동
-//                String action = intent.getAction();
-//                if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
-//                if(!action.equals(BluetoothDevice.ACTION_ACL_CONNECTED) || !intent.hasExtra(BluetoothDevice.EXTRA_DEVICE)){
-//                if(BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)){
-                    // 연결 확인을 위한 test code
-//                    LOG.debug("/*****  before assert disconnection detected! notify! *********/");
-//                    assert(action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED));
-//                    LOG.debug("/*****  disconnection detected! notify! *********/");
-//                    createNotification(DEFAULT, 13009, "disconnect test", "test", intent);
-//                }
-//                }
-//                return null;
-//            }
-//
-//            @Override
-//            protected void onPostExecute(String s) {
-//                super.onPostExecute(s);
-//                pendingResult.finish();
-//            }
-//        }
-//
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            final PendingResult pendingResult = goAsync();
-//            try {
-//                Task asyncTask = new Task(pendingResult, intent);
-//                asyncTask.execute();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    };
+    private final BroadcastReceiver bleConnectionReceiver = new BroadcastReceiver() {
+        class Task extends AsyncTask<String, Integer, String> {
+            private final PendingResult pendingResult;
+            private final Intent intent;
+
+            Task(PendingResult _pendingResult, Intent _intent) {
+                this.pendingResult = _pendingResult;
+                this.intent = _intent;
+            }
+
+            @Override
+            protected String doInBackground(String... strings) {
+//                 notification 백그라운드로 이동
+                String action = intent.getAction();
+                LOG.debug("check broadcast Action : " + action);
+                if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+                    if (!action.equals(BluetoothDevice.ACTION_ACL_CONNECTED) || !intent.hasExtra(BluetoothDevice.EXTRA_DEVICE)) {
+                        if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+//                     연결 확인을 위한 test code
+//                            LOG.debug("/*****  before assert disconnection detected! notify! *********/");
+//                            assert (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED));
+                            LOG.debug("check:  disconnection detected! notify! ");
+                            createNotification(DEFAULT, 13009, "워치를 연결해주세요", "워치와 연결이 끊겼습니다! 연결해주세요", intent);
+                        }
+                    }
+                } else if (HuamiSupport.TEST.equals(action)){
+                    LOG.debug("check: from DebugActivity, received wear detection broadcast");
+                    createNotification(DEFAULT, 13009, "워치를 착용해주세요", "워치 착용이 탐지되지 않았습니다. 워치를 착용해주세요", intent);
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(String s) {
+                super.onPostExecute(s);
+                pendingResult.finish();
+            }
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final PendingResult pendingResult = goAsync();
+            try {
+                Task asyncTask = new Task(pendingResult, intent);
+                asyncTask.execute();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    };
 
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -271,8 +276,9 @@ public class DebugActivity extends AbstractGBActivity {
         /***** ble disconnection  receiver register *****/
         // 브로드캐스트를 사용하기 위한 필터
         // Android manifest에 등록이 되어있어서 따로 등록 x (뭔가 어디서 등록된거지 ?)
-//        IntentFilter disconnectionFilter = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-//        this.registerReceiver(bleConnectionReceiver, disconnectionFilter);
+        IntentFilter disconnectionFilter = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        disconnectionFilter.addAction(HuamiSupport.TEST);
+        this.registerReceiver(bleConnectionReceiver, disconnectionFilter);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(ACTION_REPLY);
@@ -599,7 +605,7 @@ public class DebugActivity extends AbstractGBActivity {
                 case 1:
 //                    HRvalText.setText("HR: " + HuamiSupport.HEART_RATE + "bpm");
 //                    StepText.setText("TOTAL STEP : " + HuamiSupport.TOTAL_STEP);
-                    if(HuamiSupport.STEP_TIMER==1&&!TIMER_UI){
+                    if (HuamiSupport.STEP_TIMER == 1 && !TIMER_UI) {
                         timerImage.clearAnimation();
                         LOG.info("start reset");
 
@@ -618,6 +624,8 @@ public class DebugActivity extends AbstractGBActivity {
                         deviceListView.setVisibility(View.VISIBLE);
                         if (!HuamiSupport.IS_CONNECT) {
                             runMessage.setText("워치와 연결이 끊겨있습니다");
+                            Intent intent = new Intent();
+//                            createNotification(DEFAULT, 13009, "disconnect test", "test", intent);
                         } else if (HuamiSupport.IS_CONNECT && !HuamiSupport.IS_WEAR) {
                             runMessage.setText("워치를 착용해주세요");
                         }
@@ -625,8 +633,8 @@ public class DebugActivity extends AbstractGBActivity {
                         fab.setVisibility(View.VISIBLE);
                         timerImage.animate().cancel();
                         timerImage.clearAnimation();
-                    }else{
-                        timePeriod.setText((int)((HuamiSupport.RESET_TIME/60-1)-(HuamiSupport.STEP_TIMER / 60)) + ":" + (60 - (HuamiSupport.STEP_TIMER) % 60));
+                    } else {
+                        timePeriod.setText((int) ((HuamiSupport.RESET_TIME / 60 - 1) - (HuamiSupport.STEP_TIMER / 60)) + ":" + (60 - (HuamiSupport.STEP_TIMER) % 60));
 
                         timePeriod.setVisibility(View.VISIBLE);
                         timePeriod.animate().alpha(1.0f);
@@ -636,9 +644,9 @@ public class DebugActivity extends AbstractGBActivity {
                         fab.setVisibility(View.GONE);
                     }
                     inTimeStep.setText("\n" + HuamiSupport.IN_TIME_STEP);
-                    activationTimePeriod.setText("활동 시간\n\n" + newStartHour +":" + newStartMiunite + " - " + newEndHour +":" + newEndMiunite);
-                    if(newStartHour.equals("0")&&newStartMiunite.equals("0")&&newEndHour.equals("0")&&newEndMiunite.equals("0")
-                       ||newStartHour.equals("00")&&newStartMiunite.equals("00")&&newEndHour.equals("00")&&newEndMiunite.equals("00")){
+                    activationTimePeriod.setText("활동 시간\n\n" + newStartHour + ":" + newStartMiunite + " - " + newEndHour + ":" + newEndMiunite);
+                    if (newStartHour.equals("0") && newStartMiunite.equals("0") && newEndHour.equals("0") && newEndMiunite.equals("0")
+                            || newStartHour.equals("00") && newStartMiunite.equals("00") && newEndHour.equals("00") && newEndMiunite.equals("00")) {
                         activationTimePeriod.setText("활동 시간\n\n항상 활성화");
                     }
                     vibrationTimePeriod.setText("설정 주기 간격: " + (HuamiSupport.RESET_TIME / 60));
@@ -889,7 +897,7 @@ public class DebugActivity extends AbstractGBActivity {
 
     /**
      * 상태에 따라 ui 변경
-     *
+     * <p>
      * 화면 변화에 따라 ui 변경
      */
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -911,7 +919,7 @@ public class DebugActivity extends AbstractGBActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        windowon="on";
+        windowon = "on";
     }
 
     @Override

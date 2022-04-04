@@ -1853,10 +1853,17 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport{
      */
     public static boolean IS_CONNECT = false;
     public static boolean IS_WEAR = false;
+    public static int WEAR_CHECK_TIMER = -1;    // 워치 미착용 시 동작하는 타이머
+
+
+    public static final String TEST = "nodomain.freeyourgadget.gadgetbridge.service.devices.huami.TEST_ACTION";
+
     private RealtimeSamplesSupport getRealtimeSamplesSupport() {
 
         if (realtimeSamplesSupport == null) {
             realtimeSamplesSupport = new RealtimeSamplesSupport(1000, 1000) {
+
+
                 @Override
                 public void doCurrentSample() {
                     if (!HuamiSupport.super.isConnected()) {
@@ -1909,6 +1916,18 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport{
                             IS_WEAR = true;
                         }else {
                             IS_WEAR = false;
+
+                            LOG.debug("check WEAR_CHECK_TIMER : " + WEAR_CHECK_TIMER);
+
+                            WEAR_CHECK_TIMER--;
+
+                            if(WEAR_CHECK_TIMER < 0) {
+                                /**  브로드캐스트 send 구현 */
+                                LOG.debug("check: IS_WEAR is false... sending system broadcast");
+                                Intent broadcast_intent = new Intent(TEST);
+                                GBApplication.getContext().sendBroadcast(broadcast_intent);
+                                WEAR_CHECK_TIMER = 60; // 타이머 초기화
+                            }
                         }
                         if (sample.getSteps() > -1) {
                             steps += sample.getSteps();
@@ -1922,7 +1941,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport{
                         // set the steps only afterwards, since realtime steps are also recorded
                         // in the regular samples and we must not count them twice
                         // Note: we know that the DAO sample is never committed again, so we simply
-                        // change the value here in memory.
+                        // change the value here in memory\.
 
                         sample.setSteps(getSteps());
 
