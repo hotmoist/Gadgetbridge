@@ -15,6 +15,10 @@
 
 package nodomain.freeyourgadget.gadgetbridge.activities;
 
+import android.Manifest;
+import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -22,6 +26,8 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetHost;
 import android.appwidget.AppWidgetManager;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -29,24 +35,44 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.Message;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.RotateAnimation;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NavUtils;
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.RemoteInput;
+import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -58,9 +84,17 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import de.cketti.library.changelog.ChangeLog;
 import nodomain.freeyourgadget.gadgetbridge.GBApplication;
 import nodomain.freeyourgadget.gadgetbridge.R;
 import nodomain.freeyourgadget.gadgetbridge.Widget;
@@ -69,10 +103,13 @@ import nodomain.freeyourgadget.gadgetbridge.devices.DeviceManager;
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice;
 import nodomain.freeyourgadget.gadgetbridge.model.ActivitySample;
 import nodomain.freeyourgadget.gadgetbridge.model.DeviceService;
+import nodomain.freeyourgadget.gadgetbridge.service.DeviceCommunicationService;
+import nodomain.freeyourgadget.gadgetbridge.service.devices.huami.InsertDB;
+import nodomain.freeyourgadget.gadgetbridge.util.AndroidUtils;
 import nodomain.freeyourgadget.gadgetbridge.util.GB;
+import nodomain.freeyourgadget.gadgetbridge.util.Prefs;
 import nodomain.freeyourgadget.gadgetbridge.util.WidgetPreferenceStorage;
 
-import nodomain.freeyourgadget.gadgetbridge.service.devices.miband.RealtimeSamplesSupport;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huami.HuamiSupport;
 
 
@@ -80,17 +117,75 @@ import static android.content.Intent.EXTRA_SUBJECT;
 import static nodomain.freeyourgadget.gadgetbridge.util.GB.NOTIFICATION_CHANNEL_ID;
 
 public class DebugActivity extends AbstractGBActivity {
-
-
     private static final Logger LOG = LoggerFactory.getLogger(DebugActivity.class);
+    public static boolean TIMER_UI = false;
 
     private static final String EXTRA_REPLY = "reply";
     private static final String ACTION_REPLY
             = "nodomain.freeyourgadget.gadgetbridge.DebugActivity.action.reply";
+
+    /**
+     * timerImage -> ui 부분
+     */
+    public static ImageView timerImage = null;
+    public static String windowon = "화면켜짐";
+    int imageX = 0;
+    int imageY = 0;
+
+    private Spinner sendCaseSpinner;
+    private Spinner sendVibPeriodSpinner;
+    private Spinner sendStartHourSpinner;
+    private Spinner sendStartMinuteSpinner;
+    private Spinner sendEndHourSpinner;
+    private Spinner sendEndMinuteSpinner;
+
+    LinearLayout setLabCaseLayer;
+    LinearLayout developLayout;
+    LinearLayout timelayout;
+    TextView runMessage;
+    TextView vibrationTimePeriod;
+    TextView timePeriod;
+    TextView inTimeStep;
+    TextView currentCase;
+    TextView activationTimePeriod;
+    Button setVibrationTime;
+    Button timeShow;
+    Button cancel_setVibrationTime;
+    Button caseSetButton;
+    Button setPeriodButton;
+    String selectedState;
+    //권한 부여
+    private boolean pesterWithPermissions = true;
+    private static PhoneStateListener fakeStateListener;
+    /**
+     * 활동 시간 변수
+     */
+    private boolean isSetVibrationTime;
+    String newStartHour;
+    String newStartMiunite;
+    String newEndHour;
+    String newEndMiunite;
+    Handler mHandler;
+    /**
+     * 진동 상태 세팅 변수
+     */
+    private final String DEFAULT = "DEFAULT";
+    private SharedPreferences appData;
+
+
+    //추가부분
+    private DeviceManager deviceManager;
+    private GBDeviceAdapterv2 mGBDeviceAdapter;
+    private RecyclerView deviceListView;
+    private FloatingActionButton fab;
+
+
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+
         @Override
         public void onReceive(Context context, Intent intent) {
-            switch (Objects.requireNonNull(intent.getAction())) {
+            String action = "";
+            switch (Objects.requireNonNull(action = intent.getAction())) {
                 case ACTION_REPLY: {
                     Bundle remoteInput = RemoteInput.getResultsFromIntent(intent);
                     CharSequence reply = remoteInput.getCharSequence(EXTRA_REPLY);
@@ -101,6 +196,13 @@ public class DebugActivity extends AbstractGBActivity {
                 case DeviceService.ACTION_REALTIME_SAMPLES:
                     handleRealtimeSample(intent.getSerializableExtra(DeviceService.EXTRA_REALTIME_SAMPLE));
                     break;
+                case "support":
+                    if (windowon.equals("on")) {
+                        Message msg = new Message();
+                        msg.what = 1;
+                        handler.sendMessage(msg);
+                    }
+                    break;
                 default:
                     LOG.info("ignoring intent action " + intent.getAction());
                     break;
@@ -108,57 +210,446 @@ public class DebugActivity extends AbstractGBActivity {
         }
     };
 
+    /**
+     * TODO : braocastReciever을 이용하여 알림 구현
+     * -> 블루투스 연결이 끊긴 경우 ( : 이 부분은 외부에서 발생하는 이벤트로 감지)
+     * 외부에서 브로드케스트 감지 -> 알림으로 알림
+     */
+    private final BroadcastReceiver bleConnectionReceiver = new BroadcastReceiver() {
+        class Task extends AsyncTask<String, Integer, String> {
+            private final PendingResult pendingResult;
+            private final Intent intent;
 
-    private Spinner sendCaseSpinner;
-    private Spinner sendVibPeriodSpinner;
+            Task(PendingResult _pendingResult, Intent _intent) {
+                this.pendingResult = _pendingResult;
+                this.intent = _intent;
+            }
 
-    private void handleRealtimeSample(Serializable extra) {  // void -> int 형으로 변환
-        if (extra instanceof ActivitySample) {
-            ActivitySample sample = (ActivitySample) extra;
-        }
-    }
-
-    public static void notifi(Context context) {
-        new AlertDialog.Builder(context)
-                .setMessage("Test")
-                .setPositiveButton("dismiss", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        GB.toast("pressed", GB.INFO, Toast.LENGTH_LONG);
+            @Override
+            protected String doInBackground(String... strings) {
+//                 notification 백그라운드로 이동
+                String action = intent.getAction();
+                LOG.debug("check broadcast Action : " + action);
+                if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+                    if (!action.equals(BluetoothDevice.ACTION_ACL_CONNECTED) || !intent.hasExtra(BluetoothDevice.EXTRA_DEVICE)) {
+                        if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+//                     연결 확인을 위한 test code
+//                            LOG.debug("/*****  before assert disconnection detected! notify! *********/");
+//                            assert (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED));
+                            LOG.debug("check:  disconnection detected! notify! ");
+                            createNotification(DEFAULT, 13009, "워치를 연결해주세요", "워치와 연결이 끊겼습니다! 연결해주세요", intent);
+                        }
                     }
-                }).show();
-    }
-
-    public class TimeThread extends Thread {
-        @Override
-        public void run() {
-            super.run();
-            do {
-                try {
-                    Thread.sleep(500);
-                    Message msg = new Message();
-                    msg.what = 1;
-                    handler.sendMessage(msg);
-
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                } else if (HuamiSupport.TEST.equals(action)){
+                    LOG.debug("check: from DebugActivity, received wear detection broadcast");
+                    createNotification(DEFAULT, 13009, "워치를 착용해주세요", "워치 착용이 탐지되지 않았습니다. 워치를 착용해주세요", intent);
                 }
-            } while (true);
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(String s) {
+                super.onPostExecute(s);
+                pendingResult.finish();
+            }
         }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final PendingResult pendingResult = goAsync();
+            try {
+                Task asyncTask = new Task(pendingResult, intent);
+                asyncTask.execute();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_debug);
+
+        /***** ble disconnection  receiver register *****/
+        // 브로드캐스트를 사용하기 위한 필터
+        // Android manifest에 등록이 되어있어서 따로 등록 x (뭔가 어디서 등록된거지 ?)
+        IntentFilter disconnectionFilter = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        disconnectionFilter.addAction(HuamiSupport.TEST);
+        this.registerReceiver(bleConnectionReceiver, disconnectionFilter);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ACTION_REPLY);
+        filter.addAction(DeviceService.ACTION_REALTIME_SAMPLES);
+        filter.addAction("support");
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
+        registerReceiver(mReceiver, filter); // for ACTION_REPLY
+
+        /**
+         * 사용되지 않음
+         */
+        // Lab cases spinner add
+        String[] cases = {"NONE", "MUTABILITY", "ONE SECOND", "FIVE SECOND", "NON MUTABILITY"};
+        ArrayAdapter<String> caseSpinnerArrayAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, cases);
+        sendCaseSpinner = findViewById(R.id.sendCaseSpinner);
+        sendCaseSpinner.setAdapter(caseSpinnerArrayAdopter);
+
+        /**
+         * 사용되지 않음
+         */
+        // 진동 체크 주기 시간 spinner
+        String[] timeCases = {"1", "2", "3", "10", "20", "30", "40", "50", "60"};
+        ArrayAdapter<String> timePeriodSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, timeCases);
+        sendVibPeriodSpinner = findViewById(R.id.sendVibPeriod);
+        sendVibPeriodSpinner.setAdapter(timePeriodSpinnerAdopter);
+
+        String[] hourCases = new String[24];
+        String[] minuteCases = new String[60];
+        for (int i = 0; i < hourCases.length; i++) {
+            hourCases[i] = i + "";
+        }
+        for (int i = 0; i < minuteCases.length; i++) {
+            minuteCases[i] = i + "";
+        }
+        Bitmap bitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawColor(Color.BLACK);
+
+        /**
+         * 사용되지 않음
+         */
+        // time - start hour spinner
+        ArrayAdapter<String> startHourSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, hourCases);
+        sendStartHourSpinner = findViewById(R.id.startHourSpinner);
+        sendStartHourSpinner.setAdapter(startHourSpinnerAdopter);
+
+        // time - start minute spinner
+        ArrayAdapter<String> startMinuteSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, minuteCases);
+        sendStartMinuteSpinner = findViewById(R.id.startMinuteSpinner);
+        sendStartMinuteSpinner.setAdapter(startMinuteSpinnerAdopter);
+
+        // time - end hour spinner
+        ArrayAdapter<String> endHourSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, hourCases);
+        sendEndHourSpinner = findViewById(R.id.endHourSpinner);
+        sendEndHourSpinner.setAdapter(endHourSpinnerAdopter);
+
+        // time - end minute spinner
+        ArrayAdapter<String> endMinuteSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, minuteCases);
+        sendEndMinuteSpinner = findViewById(R.id.endMinuteSpinner);
+        sendEndMinuteSpinner.setAdapter(endMinuteSpinnerAdopter);
+
+        inTimeStep = (TextView) findViewById(R.id.inTimeStep);
+        currentCase = (TextView) findViewById(R.id.currentCase);
+
+        /**
+         * 케이스 설정 화면, ui 설정
+         */
+        setLabCaseLayer = findViewById(R.id.setLabCaseLayer);
+        setLabCaseLayer.setVisibility(View.GONE);
+        developLayout = findViewById(R.id.develop_layout);
+        developLayout.setVisibility(View.GONE);
+        timelayout = findViewById(R.id.time_layout);
+        timelayout.setVisibility(View.GONE);
+        timePeriod = findViewById(R.id.timePeriod);
+        timePeriod.setVisibility(View.GONE);
+
+        activationTimePeriod = findViewById(R.id.activationTimePeriod);
+        vibrationTimePeriod = findViewById(R.id.vibrationTimePeriod);
+        runMessage = findViewById(R.id.run_message);
+        timerImage = findViewById(R.id.imageView1);
+
+        /**
+         * 핸들러 생성
+         */
+        mHandler = new Handler();
+
+        /**
+         * 시간 세팅 메뉴창 켜기
+         */
+        timeShow = findViewById(R.id.time_show);
+        timeShow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                timelayout.animate().alpha(1.0f);
+                timelayout.setVisibility(View.VISIBLE);
+                timelayout.animate().translationY(-50);
+                timeShow.animate().alpha(0.0f);
+                timeShow.setVisibility(View.GONE);
+            }
+        });
+
+        /**
+         * 시간 세팅 메뉴창 취소버튼
+         */
+        cancel_setVibrationTime = findViewById(R.id.cancel_setVibrationTime);
+        cancel_setVibrationTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                timelayout.setVisibility(View.GONE);
+                timelayout.animate().alpha(0.0f);
+                timelayout.setVisibility(View.GONE);
+                timelayout.animate().translationY(50);
+                timeShow.animate().alpha(1.0f);
+                timeShow.setVisibility(View.VISIBLE);
+            }
+        });
+
+        /**
+         * 시간 세팅 메뉴창 설정 완료
+         */
+        setVibrationTime = findViewById(R.id.setVibrationTime);
+        setVibrationTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String startTime = null;
+                String endTime = null;
+                newStartHour = (String) sendStartHourSpinner.getSelectedItem();
+                newStartMiunite = (String) sendStartMinuteSpinner.getSelectedItem();
+                newEndHour = (String) sendEndHourSpinner.getSelectedItem();
+                newEndMiunite = (String) sendEndMinuteSpinner.getSelectedItem();
+
+                if (
+                        (!newStartHour.equals("") && !newStartMiunite.equals("")) && (newStartHour.length() < 3 && newStartMiunite.length() < 3 && Integer.parseInt(newStartHour) < 24 && Integer.parseInt(newStartMiunite) < 60)
+                                && (!newEndHour.equals("") && !newEndMiunite.equals("")) && (newEndHour.length() < 3 && newEndMiunite.length() < 3 && Integer.parseInt(newEndHour) < 24 && Integer.parseInt(newEndMiunite) < 60)
+                                && (Integer.parseInt(newEndHour) > Integer.parseInt(newStartHour)
+                                || (newStartHour.equals("0") && newStartMiunite.equals("0") && newEndHour.equals("0") && newEndMiunite.equals("0")))
+                ) {
+                    if (newStartHour.length() == 1) {
+                        newStartHour = '0' + newStartHour;
+                    }
+                    if (newStartMiunite.length() == 1) {
+                        newStartMiunite = '0' + newStartMiunite;
+                    }
+                    startTime = newStartHour + newStartMiunite + "00";
+
+                    if (newEndHour.length() == 1) {
+                        newEndHour = '0' + newEndHour;
+                    }
+                    if (newEndMiunite.length() == 1) {
+                        newEndMiunite = '0' + newEndMiunite;
+                    }
+                    endTime = newEndHour + newEndMiunite + "00";
+
+                    GB.toast(newStartHour + "시" + newStartMiunite + "분 부터" +
+                                    newEndHour + "시" + newEndMiunite + "분 까지로 설정되었습니다."
+
+                            , Toast.LENGTH_SHORT, GB.INFO);
+                    HuamiSupport.SET_START_TIME = Integer.parseInt(startTime);
+                    HuamiSupport.SET_END_TIME = Integer.parseInt(endTime);
+                    saveTime(2);
+
+                    timelayout.animate().alpha(0.0f);
+                    timelayout.setVisibility(View.GONE);
+                    timelayout.animate().translationY(50);
+                    timeShow.animate().alpha(1.0f);
+                    timeShow.setVisibility(View.VISIBLE);
+
+                    if (newStartHour.equals("0") && newStartMiunite.equals("0") && newEndHour.equals("0") && newEndMiunite.equals("0")) {
+                        activationTimePeriod.setText("활동 시간\n\n항상 활성화");
+                    }
+
+                    InsertDB insert = new InsertDB(DebugActivity.this);
+                    long now = System.currentTimeMillis();
+                    Date date = new Date(now);
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+                    String getTime = dateFormat.format(date);
+                    insert.insertData(getTime + "", newStartHour + "", newStartMiunite + "", "to", newEndHour + "", newEndMiunite + "", option.getCase() + "");
+
+                } else {
+                    newStartHour = "00";
+                    newStartMiunite = "00";
+                    newEndHour = "00";
+                    newEndMiunite = "00";
+                    GB.toast("다시 입력하세요.", Toast.LENGTH_SHORT, GB.INFO);
+                }
+            }
+        });
+
+        /**
+         * 디바이스 추가 메뉴 + 버튼
+         */
+        fab = findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(GBApplication.getContext(), DiscoveryActivity.class));
+            }
+        });
+
+
+        /**
+         * 테스트 실험용
+         */
+        caseSetButton = findViewById(R.id.setLabCase);
+        caseSetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectedState = (String) sendCaseSpinner.getSelectedItem();
+                if (selectedState.equals("NONE")) {
+                    HuamiSupport.CASES = HuamiSupport.NONE;
+                } else if (selectedState.equals("MUTABILITY")) {
+                    HuamiSupport.CASES = HuamiSupport.MUTABILITY;
+                } else if (selectedState.equals("ONE SECOND")) {
+                    HuamiSupport.CASES = HuamiSupport.ONE_SECOND;
+                } else if (selectedState.equals("FIVE SECOND")) {
+                    HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
+                } else if (selectedState.equals("NON MUTABILITY")) {
+                    HuamiSupport.CASES = HuamiSupport.NONE_MUTABILITY;
+                }
+                saveTime(1);
+
+            }
+        });
+        /**
+         * 사용되지 않음
+         */
+        setPeriodButton = findViewById(R.id.setVibPeriod);
+        setPeriodButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String selectedTime = (String) sendVibPeriodSpinner.getSelectedItem();
+                HuamiSupport.RESET_TIME = Integer.parseInt(selectedTime) * 60;
+                saveTime(3);
+            }
+        });
+
+        /**
+         * 디바이스 연결
+         */
+        createNotificationChannel(DEFAULT, "default channel", NotificationManager.IMPORTANCE_HIGH);
+        Intent intent = new Intent(this, DebugActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        deviceManager = ((GBApplication) getApplication()).getDeviceManager();
+        deviceListView = findViewById(R.id.deviceListView);
+        deviceListView.setHasFixedSize(true);
+        deviceListView.setLayoutManager(new LinearLayoutManager(this));
+        List<GBDevice> deviceList = deviceManager.getDevices();
+        mGBDeviceAdapter = new GBDeviceAdapterv2(this, deviceList);
+        deviceListView.setAdapter(this.mGBDeviceAdapter);
+        registerForContextMenu(deviceListView);
+        IntentFilter filterLocal = new IntentFilter();
+        filterLocal.addAction(GBApplication.ACTION_LANGUAGE_CHANGE);
+        filterLocal.addAction(GBApplication.ACTION_QUIT);
+        filterLocal.addAction(DeviceManager.ACTION_DEVICES_CHANGED);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filterLocal);
+        refreshPairedDevices();
+
+        /*
+         * Ask for permission to intercept notifications on first run.
+         */
+        Prefs prefs = GBApplication.getPrefs();
+        pesterWithPermissions = prefs.getBoolean("permission_pestering", true);
+        Set<String> set = NotificationManagerCompat.getEnabledListenerPackages(this);
+        if (pesterWithPermissions) {
+            if (!set.contains(this.getPackageName())) { // If notification listener access hasn't been granted
+                Intent enableIntent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
+                startActivity(enableIntent);
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            checkAndRequestPermissions();
+        }
+        ChangeLog cl = createChangeLog();
+        if (cl.isFirstRun()) {
+            try {
+                cl.getLogDialog().show();
+            } catch (Exception ignored) {
+                GB.toast(getBaseContext(), "Error showing Changelog", Toast.LENGTH_LONG, GB.ERROR);
+            }
+        }
+        if (GB.isBluetoothEnabled() && deviceList.isEmpty() && Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            startActivity(new Intent(this, DiscoveryActivity.class));
+        } else {
+            GBApplication.deviceService().requestDeviceInfo();
+        }
+
+        /**
+         * 이전에 설정해준 데이터를 저장해 뒀다가 불러올 때
+         * 세팅해주는 코드
+         */
+        appData = getSharedPreferences("appData", MODE_PRIVATE);
+        loadTime();
+        if (isSetVibrationTime) {
+            // 이전에 시간이 저장된 경우가 있으면 세팅
+            HuamiSupport.SET_START_TIME = Integer.parseInt(newStartHour + newStartMiunite + "000");
+            HuamiSupport.SET_END_TIME = Integer.parseInt(newEndHour + newEndMiunite + "000");
+        }
+
+
+//        BroadcastReceiver br = receiverUI;
+//        IntentFilter UiFilter = new IntentFilter();
+//        UiFilter.addAction("Background");
+//        registerReceiver(br, UiFilter);
+//        background = new Intent(getApplicationContext(), MyService.class);
+//        startService(background);
+
+
+        GBApplication.deviceService().start();
+//        timer = new Timer();
+//        timer.schedule(Task,0,1000);
+        HuamiSupport.CASES = option.getCase();
+        HuamiSupport.RESET_TIME = option.getTime();
     }
 
-    private Handler handler = new Handler(new Handler.Callback() {
+
+    /**
+     * ui 및 여러가지 세팅 Handler
+     */
+    public Handler handler = new Handler(new Handler.Callback() {
+        @SuppressLint("SetTextI18n")
         @Override
         public boolean handleMessage(Message msg) {
-
             switch (msg.what) {
                 case 1:
 //                    HRvalText.setText("HR: " + HuamiSupport.HEART_RATE + "bpm");
 //                    StepText.setText("TOTAL STEP : " + HuamiSupport.TOTAL_STEP);
-                    timePeriod.setText("경과 시간: " + (int) (HuamiSupport.STEP_TIMER / 60) + ":" + (HuamiSupport.STEP_TIMER) % 60+ " / "+ (HuamiSupport.RESET_TIME/60)+":00");
-                    inTimeStep.setText("STEP\n" + HuamiSupport.IN_TIME_STEP);
-                    activationTimePeriod.setText("설정 활동 시간: " + newStartHour +":" + newStartMiunite + " ~ " + newEndHour +":" + newEndMiunite);
-                    vibrationTimePeriod.setText("설정 주기 간격: " + (HuamiSupport.RESET_TIME/60));
+                    if (HuamiSupport.STEP_TIMER == 1 && !TIMER_UI) {
+                        timerImage.clearAnimation();
+                        LOG.info("start reset");
+
+                        RotateAnimation anim =
+                                new RotateAnimation(45, 405, timerImage.getWidth() / 2, timerImage.getHeight() / 2);
+                        anim.setDuration(HuamiSupport.RESET_TIME * 1000 - HuamiSupport.STEP_TIMER * 1000);//에니메이션 지속시간
+                        anim.setInterpolator(new LinearInterpolator());
+                        anim.setDuration(HuamiSupport.RESET_TIME * 1000);
+                        timerImage.startAnimation(anim);
+                        TIMER_UI = true;
+                    }
+                    if ((HuamiSupport.STEP_TIMER) % 60 == -1) {
+                        timePeriod.setVisibility(View.GONE);
+                        timePeriod.animate().alpha(0.0f);
+                        deviceListView.animate().alpha(1.0f);
+                        deviceListView.setVisibility(View.VISIBLE);
+                        if (!HuamiSupport.IS_CONNECT) {
+                            runMessage.setText("워치와 연결이 끊겨있습니다");
+                            Intent intent = new Intent();
+//                            createNotification(DEFAULT, 13009, "disconnect test", "test", intent);
+                        } else if (HuamiSupport.IS_CONNECT && !HuamiSupport.IS_WEAR) {
+                            runMessage.setText("워치를 착용해주세요");
+                        }
+                        runMessage.setVisibility(View.VISIBLE);
+                        fab.setVisibility(View.VISIBLE);
+                        timerImage.animate().cancel();
+                        timerImage.clearAnimation();
+                    } else {
+                        timePeriod.setText((int) ((HuamiSupport.RESET_TIME / 60 - 1) - (HuamiSupport.STEP_TIMER / 60)) + ":" + (60 - (HuamiSupport.STEP_TIMER) % 60));
+
+                        timePeriod.setVisibility(View.VISIBLE);
+                        timePeriod.animate().alpha(1.0f);
+                        deviceListView.animate().alpha(0.0f);
+                        deviceListView.setVisibility(View.GONE);
+                        runMessage.setVisibility(View.GONE);
+                        fab.setVisibility(View.GONE);
+                    }
+                    inTimeStep.setText("\n" + HuamiSupport.IN_TIME_STEP);
+                    activationTimePeriod.setText("활동 시간\n\n" + newStartHour + ":" + newStartMiunite + " - " + newEndHour + ":" + newEndMiunite);
+                    if (newStartHour.equals("0") && newStartMiunite.equals("0") && newEndHour.equals("0") && newEndMiunite.equals("0")
+                            || newStartHour.equals("00") && newStartMiunite.equals("00") && newEndHour.equals("00") && newEndMiunite.equals("00")) {
+                        activationTimePeriod.setText("활동 시간\n\n항상 활성화");
+                    }
+                    vibrationTimePeriod.setText("설정 주기 간격: " + (HuamiSupport.RESET_TIME / 60));
                     if (HuamiSupport.CASES == HuamiSupport.NONE) {
                         currentCase.setText("Current case: NONE");
                     } else if (HuamiSupport.CASES == HuamiSupport.MUTABILITY) {
@@ -167,6 +658,8 @@ public class DebugActivity extends AbstractGBActivity {
                         currentCase.setText("Current case: One Second");
                     } else if (HuamiSupport.CASES == HuamiSupport.FIVE_SECOND) {
                         currentCase.setText("Current case: Five Second");
+                    } else if (HuamiSupport.CASES == HuamiSupport.NONE_MUTABILITY) {
+                        currentCase.setText("current case: None Mutability");
                     }
                     break;
             }
@@ -174,32 +667,17 @@ public class DebugActivity extends AbstractGBActivity {
         }
     });
 
-    String selectedState;
+    private void handleRealtimeSample(Serializable extra) {  // void -> int 형으로 변환
+        if (extra instanceof ActivitySample) {
+            ActivitySample sample = (ActivitySample) extra;
+        }
+    }
 
-    TextView HRvalText;
-    TextView StepText;
-    TextView timePeriod;
-    TextView inTimeStep;
-    TextView currentCase;
-    TextView activationTimePeriod;
-    EditText startHour;
-    EditText startminute;
-    EditText endHour;
-    EditText endminute;
-    Button setVibrationTime;
 
-    TextView vibrationTimePeriod;
-
-    // 활동 시간 관련
-    private boolean isSetVibrationTime;
-    String newStartHour;
-    String newStartMiunite;
-    String newEndHour;
-    String newEndMiunite;
-    private SharedPreferences appData;
-
-    Handler mHandler;
-    private final String DEFAULT = "DEFAULT";
+    /**
+     * TODO : Broadcast Reciever을 이용한 notification 구현
+     * 외부 event : 블루투스 연결 끊김
+     */
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     void createNotificationChannel(String channelID, String channelName, int importance) {
@@ -218,6 +696,7 @@ public class DebugActivity extends AbstractGBActivity {
                 .setContentText(text)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
+                .setOngoing(true)
 //                .addAction(R.drawable.ic_launcher_foreground, getString(R.string.action_quit), pendingIntent)
                 .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE);
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -229,357 +708,55 @@ public class DebugActivity extends AbstractGBActivity {
         notificationManager.cancel(id);
     }
 
-    private void saveTime(int t){
+    /**
+     * 시간 저장
+     *
+     * @param t
+     */
+    private void saveTime(int t) {
         SharedPreferences.Editor editor = appData.edit();
-        if(t == 1) {
+        if (t == 1) {
             // t == 1일때만 lab case 저장
             editor.putString("LabCase", selectedState);
-        }
-
-        else if(t ==2) {
-            // t == 2일때 활동 시간 지정정            editor.putBoolean("SAVE_VIB_TIME", true);
-            editor.putString("newStartHour", startHour.getText().toString().trim());
-            editor.putString("newStartMinute", startminute.getText().toString().trim());
-            editor.putString("newEndHour", endHour.getText().toString().trim());
-            editor.putString("newEndMinute", endminute.getText().toString().trim());
+        } else if (t == 2) {
+            // t == 2일때 활동 시간 지정정
+            editor.putBoolean("SAVE_VIB_TIME", true);
+            editor.putString("newStartHour", sendStartHourSpinner.getSelectedItem().toString().trim());
+            editor.putString("newStartMinute", sendStartMinuteSpinner.getSelectedItem().toString().trim());
+            editor.putString("newEndHour", sendEndHourSpinner.getSelectedItem().toString().trim());
+            editor.putString("newEndMinute", sendEndMinuteSpinner.getSelectedItem().toString().trim());
+        } else if (t == 3) {
+            // t == 3 일때 주기 불러오기
+            editor.putInt("newVibPeriod", Integer.parseInt(sendVibPeriodSpinner.getSelectedItem().toString()));
         }
         editor.apply();
     }
 
-    private void loadTime(){
+    /**
+     * 시간 불러오기
+     */
+    private void loadTime() {
         isSetVibrationTime = appData.getBoolean("SAVE_VIB_TIME", false);
         newStartHour = appData.getString("newStartHour", "");
         newStartMiunite = appData.getString("newStartMinute", "");
         newEndHour = appData.getString("newEndHour", "");
         newEndMiunite = appData.getString("newEndMinute", "");
+        HuamiSupport.RESET_TIME = appData.getInt("newVibPeriod", 10) * 60;
 
         String loadedCase = appData.getString("LabCase", "NONE");
-        if (loadedCase.equals("NONE")){
+        if (loadedCase.equals("NONE")) {
             HuamiSupport.CASES = HuamiSupport.NONE;
 //            currentCase.setText("current case: NONE");
-        }else if(loadedCase.equals("MUTABILITY")){
+        } else if (loadedCase.equals("MUTABILITY")) {
             HuamiSupport.CASES = HuamiSupport.MUTABILITY;
 //            currentCase.setText("Current case: Mutability");
-        }else if (loadedCase.equals("ONE SECOND")){
+        } else if (loadedCase.equals("ONE SECOND")) {
             HuamiSupport.CASES = HuamiSupport.ONE_SECOND;
 //            currentCase.setText("Current case: One Second");
-        }else if (loadedCase.equals("FIVE SECOND")){
+        } else if (loadedCase.equals("FIVE SECOND")) {
             HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
 //            currentCase.setText("Current case: Five Second");
         }
-    }
-    
-    //추가부분
-    private DeviceManager deviceManager;
-    private GBDeviceAdapterv2 mGBDeviceAdapter;
-    private RecyclerView deviceListView;
-    private Button fab;
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_debug);
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(ACTION_REPLY);
-        filter.addAction(DeviceService.ACTION_REALTIME_SAMPLES);
-        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
-        registerReceiver(mReceiver, filter); // for ACTION_REPLY
-
-
-        // Lab cases spinner add
-        String[] cases = {"NONE", "MUTABILITY", "ONE SECOND", "FIVE SECOND"};
-        ArrayAdapter<String> caseSpinnerArrayAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, cases);
-        sendCaseSpinner = findViewById(R.id.sendCaseSpinner);
-        sendCaseSpinner.setAdapter(caseSpinnerArrayAdopter);
-
-        // 진동 체크 주기 시간 spinner
-        String[] timeCases = {"10", "20", "30","40","50","60"};
-        ArrayAdapter<String> timePeriodSpinnerAdopter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, timeCases);
-        sendVibPeriodSpinner = findViewById(R.id.sendVibPeriod);
-        sendVibPeriodSpinner.setAdapter(timePeriodSpinnerAdopter);
-
-//        HRvalText = (TextView) findViewById(R.id.realtimeHR);
-//        StepText = (TextView) findViewById(R.id.realtimeSteps);
-        timePeriod = (TextView) findViewById(R.id.timePeriod);
-        inTimeStep = (TextView) findViewById(R.id.inTimeStep);
-        currentCase = (TextView) findViewById(R.id.currentCase);
-
-        startHour = findViewById(R.id.startHour);
-        startminute = findViewById(R.id.startMinute);
-        endHour = findViewById(R.id.endHour);
-        endminute = findViewById(R.id.endMinute);
-        setVibrationTime = findViewById(R.id.setVibrationTime);
-        activationTimePeriod = findViewById(R.id.activationTimePeriod);
-
-        vibrationTimePeriod = findViewById(R.id.vibrationTimePeriod);
-
-        // 커서 부분 제거
-        startHour.setCursorVisible(false);
-        startminute.setCursorVisible(false);
-        endHour.setCursorVisible(false);
-        endminute.setCursorVisible(false);
-
-        // 시작 시간과 종료시간이 지정된 경우
-        appData = getSharedPreferences("appData", MODE_PRIVATE);
-        loadTime();
-
-        if (isSetVibrationTime) {
-         // 이전에 시간이 저장된 경우가 있으면 세팅
-            startHour.setText(newStartHour);
-            startminute.setText(newStartMiunite);
-            endHour.setText(newEndHour);
-            endminute.setText(newEndMiunite);
-        }
-
-
-        setVibrationTime.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String startTime = null;
-                String endTime = null;
-
-                newStartHour = startHour.getText().toString();
-                newStartMiunite = startminute.getText().toString();
-                newEndHour = endHour.getText().toString();
-                newEndMiunite = endminute.getText().toString();
-
-
-                if (
-                        (!newStartHour.equals("") && !newStartMiunite.equals("")) && (newStartHour.length() < 3 && newStartMiunite.length() < 3 && Integer.parseInt(newStartHour) < 24 && Integer.parseInt(newStartMiunite) < 60)
-                                && (!newEndHour.equals("") && !newEndMiunite.equals("")) && (newEndHour.length() < 3 && newEndMiunite.length() < 3 && Integer.parseInt(newEndHour) < 24 && Integer.parseInt(newEndMiunite) < 60)
-                                && (Integer.parseInt(newEndHour) > Integer.parseInt(newStartHour))
-                ) {
-                    if (startHour.getText().length() == 1) {
-                        newStartHour = '0' + startHour.getText().toString();
-                    }
-                    if (startminute.getText().length() == 1) {
-                        newStartMiunite = '0' + startminute.getText().toString();
-                    }
-                    startTime = newStartHour + newStartMiunite + "00";
-
-                    if (endHour.getText().length() == 1) {
-                        newEndHour = '0' + endHour.getText().toString();
-                    }
-                    if (endminute.getText().length() == 1) {
-                        newEndMiunite = '0' + endminute.getText().toString();
-                    }
-                    endTime = newEndHour + newEndMiunite + "00";
-
-                    GB.toast(newStartHour + "시" + newStartMiunite + "분 부터" +
-                                    newEndHour + "시" + newEndMiunite + "분 까지로 설정되었습니다."
-
-                            , Toast.LENGTH_SHORT, GB.INFO);
-                    HuamiSupport.SET_START_TIME = Integer.parseInt(startTime);
-                    HuamiSupport.SET_END_TIME = Integer.parseInt(endTime);
-                    saveTime(2);
-                } else {
-                    GB.toast("다시 입력하세요.", Toast.LENGTH_SHORT, GB.INFO);
-                }
-            }
-        });
-
-
-        new TimeThread().start();
-
-        Button caseSetButton = findViewById(R.id.setLabCase);
-        caseSetButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                selectedState = (String) sendCaseSpinner.getSelectedItem();
-                if (selectedState.equals("NONE")) {
-                    HuamiSupport.CASES = HuamiSupport.NONE;
-                } else if (selectedState.equals("MUTABILITY")) {
-                    HuamiSupport.CASES = HuamiSupport.MUTABILITY;
-                } else if (selectedState.equals("ONE SECOND")) {
-                    HuamiSupport.CASES = HuamiSupport.ONE_SECOND;
-                } else if (selectedState.equals("FIVE SECOND")) {
-                    HuamiSupport.CASES = HuamiSupport.FIVE_SECOND;
-                }
-            saveTime(1);
-            }
-        });
-
-        Button setPeriodButton = findViewById(R.id.setVibPeriod);
-        setPeriodButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String selectedTime = (String) sendVibPeriodSpinner.getSelectedItem();
-                HuamiSupport.RESET_TIME = Integer.parseInt(selectedTime) * 60;
-            }
-        });
-
-
-        final boolean[] flag = {false};
-        mHandler = new Handler();
-        createNotificationChannel(DEFAULT, "default channel", NotificationManager.IMPORTANCE_HIGH);
-
-        Intent intent = new Intent(this, ControlCenterv2.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
-        Button sendEmail = findViewById(R.id.sendEmail);
-        sendEmail.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent email = new Intent(Intent.ACTION_SEND);
-                email.setType("plain/text");
-                String[] address = {"ljy9805@gmail.com"};
-                email.putExtra(Intent.EXTRA_EMAIL, address);
-                email.putExtra(Intent.EXTRA_SUBJECT, "Daily Report");
-                email.putExtra(Intent.EXTRA_TEXT, "하루동안 알람을 받은 횟수는 몇회입니까?\n1. 0~2회 \n2.3~4회\n5회이상\n\n실험을 하면서 기능적으로 문제가 되었던 부분이 있으면 작성해주세요.");
-                startActivity(email);
-            }
-        });
-
-//        Button dataTest = findViewById(R.id.sendDataBase);
-//        dataTest.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                InsertDB insertDB = new InsertDB(DebugActivity.this);
-//                insertDB.insertData("1", "1", "1", "1");
-//            }
-//        });
-
-
-        deviceManager = ((GBApplication) getApplication()).getDeviceManager();
-
-        deviceListView = findViewById(R.id.deviceListView);
-        deviceListView.setHasFixedSize(true);
-        deviceListView.setLayoutManager(new LinearLayoutManager(this));
-
-        List<GBDevice> deviceList = deviceManager.getDevices();
-        mGBDeviceAdapter = new GBDeviceAdapterv2(this, deviceList);
-
-        deviceListView.setAdapter(this.mGBDeviceAdapter);
-
-        fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(GBApplication.getContext(), DiscoveryActivity.class));
-            }
-        });
-
-
-    }
-
-    private void deleteWidgetsPrefs() {
-        WidgetPreferenceStorage widgetPreferenceStorage = new WidgetPreferenceStorage();
-        widgetPreferenceStorage.deleteWidgetsPrefs(DebugActivity.this);
-        widgetPreferenceStorage.showAppWidgetsPrefs(DebugActivity.this);
-    }
-
-    private void showAppWidgetsPrefs() {
-        WidgetPreferenceStorage widgetPreferenceStorage = new WidgetPreferenceStorage();
-        widgetPreferenceStorage.showAppWidgetsPrefs(DebugActivity.this);
-
-    }
-
-    private void showAllRegisteredAppWidgets() {
-        //https://stackoverflow.com/questions/17387191/check-if-a-widget-is-exists-on-homescreen-using-appwidgetid
-
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(DebugActivity.this);
-        AppWidgetHost appWidgetHost = new AppWidgetHost(DebugActivity.this, 1); // for removing phantoms
-        int[] appWidgetIDs = appWidgetManager.getAppWidgetIds(new ComponentName(DebugActivity.this, Widget.class));
-        GB.toast("Number of registered app widgets: " + appWidgetIDs.length, Toast.LENGTH_SHORT, GB.INFO);
-        for (int appWidgetID : appWidgetIDs) {
-            GB.toast("Widget: " + appWidgetID, Toast.LENGTH_SHORT, GB.INFO);
-        }
-    }
-
-    private void unregisterAllRegisteredAppWidgets() {
-        //https://stackoverflow.com/questions/17387191/check-if-a-widget-is-exists-on-homescreen-using-appwidgetid
-
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(DebugActivity.this);
-        AppWidgetHost appWidgetHost = new AppWidgetHost(DebugActivity.this, 1); // for removing phantoms
-        int[] appWidgetIDs = appWidgetManager.getAppWidgetIds(new ComponentName(DebugActivity.this, Widget.class));
-        GB.toast("Number of registered app widgets: " + appWidgetIDs.length, Toast.LENGTH_SHORT, GB.INFO);
-        for (int appWidgetID : appWidgetIDs) {
-            appWidgetHost.deleteAppWidgetId(appWidgetID);
-            GB.toast("Removing widget: " + appWidgetID, Toast.LENGTH_SHORT, GB.INFO);
-        }
-    }
-
-    private void showWarning() {
-        new AlertDialog.Builder(this)
-                .setCancelable(true)
-                .setTitle(R.string.warning)
-                .setMessage(R.string.share_log_warning)
-                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        shareLog();
-                    }
-                })
-                .setNegativeButton(R.string.Cancel, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // do nothing
-                    }
-                })
-                .show();
-    }
-
-    private void testNewFunctionality() {
-        GBApplication.deviceService().onTestNewFunction();
-    }
-
-    private void shareLog() {
-        String fileName = GBApplication.getLogPath();
-        if (fileName != null && fileName.length() > 0) {
-            File logFile = new File(fileName);
-            if (!logFile.exists()) {
-                GB.toast("File does not exist", Toast.LENGTH_LONG, GB.INFO);
-                return;
-            }
-
-            Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
-            emailIntent.setType("*/*");
-            emailIntent.putExtra(EXTRA_SUBJECT, "Gadgetbridge log file");
-            emailIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(logFile));
-            startActivity(Intent.createChooser(emailIntent, "Share File"));
-        }
-    }
-
-    private void testNotification() {
-        Intent notificationIntent = new Intent(getApplicationContext(), DebugActivity.class);
-        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0,
-                notificationIntent, 0);
-
-        RemoteInput remoteInput = new RemoteInput.Builder(EXTRA_REPLY)
-                .build();
-
-        Intent replyIntent = new Intent(ACTION_REPLY);
-
-        PendingIntent replyPendingIntent = PendingIntent.getBroadcast(this, 0, replyIntent, 0);
-
-        NotificationCompat.Action action =
-                new NotificationCompat.Action.Builder(android.R.drawable.ic_input_add, "Reply", replyPendingIntent)
-                        .addRemoteInput(remoteInput)
-                        .build();
-
-        NotificationCompat.WearableExtender wearableExtender = new NotificationCompat.WearableExtender().addAction(action);
-
-        NotificationCompat.Builder ncomp = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-                .setContentTitle(getString(R.string.test_notification))
-                .setContentText(getString(R.string.this_is_a_test_notification_from_gadgetbridge))
-                .setTicker(getString(R.string.this_is_a_test_notification_from_gadgetbridge))
-                .setSmallIcon(R.drawable.ic_notification)
-                .setAutoCancel(true)
-                .setContentIntent(pendingIntent)
-                .extend(wearableExtender);
-
-        GB.notify((int) System.currentTimeMillis(), ncomp.build(), this);
-    }
-
-    private void testPebbleKitNotification() {
-        Intent pebbleKitIntent = new Intent("com.getpebble.action.SEND_NOTIFICATION");
-        pebbleKitIntent.putExtra("messageType", "PEBBLE_ALERT");
-        pebbleKitIntent.putExtra("notificationData", "[{\"title\":\"PebbleKitTest\",\"body\":\"sent from Gadgetbridge\"}]");
-        getApplicationContext().sendBroadcast(pebbleKitIntent);
     }
 
     @Override
@@ -599,4 +776,155 @@ public class DebugActivity extends AbstractGBActivity {
         unregisterReceiver(mReceiver);
     }
 
+    //add for research
+    private void refreshPairedDevices() {
+        mGBDeviceAdapter.notifyDataSetChanged();
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private void checkAndRequestPermissions() {
+        List<String> wantedPermissions = new ArrayList<>();
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED)
+            wantedPermissions.add(Manifest.permission.BLUETOOTH);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_DENIED)
+            wantedPermissions.add(Manifest.permission.BLUETOOTH_ADMIN);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_DENIED)
+            wantedPermissions.add(Manifest.permission.READ_CONTACTS);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_DENIED)
+            wantedPermissions.add(Manifest.permission.CALL_PHONE);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_DENIED)
+            wantedPermissions.add(Manifest.permission.READ_CALL_LOG);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_DENIED)
+            wantedPermissions.add(Manifest.permission.READ_PHONE_STATE);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.PROCESS_OUTGOING_CALLS) == PackageManager.PERMISSION_DENIED)
+            wantedPermissions.add(Manifest.permission.PROCESS_OUTGOING_CALLS);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_DENIED)
+            wantedPermissions.add(Manifest.permission.RECEIVE_SMS);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_DENIED)
+            wantedPermissions.add(Manifest.permission.READ_SMS);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_DENIED)
+            wantedPermissions.add(Manifest.permission.SEND_SMS);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED)
+            wantedPermissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_DENIED)
+            wantedPermissions.add(Manifest.permission.READ_CALENDAR);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED)
+            wantedPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED)
+            wantedPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+
+        try {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.MEDIA_CONTENT_CONTROL) == PackageManager.PERMISSION_DENIED)
+                wantedPermissions.add(Manifest.permission.MEDIA_CONTENT_CONTROL);
+        } catch (Exception ignored) {
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (pesterWithPermissions) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_DENIED) {
+                    wantedPermissions.add(Manifest.permission.ANSWER_PHONE_CALLS);
+                }
+            }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_DENIED) {
+                wantedPermissions.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION);
+            }
+        }
+
+        if (!wantedPermissions.isEmpty()) {
+            Prefs prefs = GBApplication.getPrefs();
+            // If this is not the first run, we can rely on
+            // shouldShowRequestPermissionRationale(String permission)
+            // and ignore permissions that shouldn't or can't be requested again
+            if (prefs.getBoolean("permissions_asked", false)) {
+                // Don't request permissions that we shouldn't show a prompt for
+                // e.g. permissions that are "Never" granted by the user or never granted by the system
+                Set<String> shouldNotAsk = new HashSet<>();
+                for (String wantedPermission : wantedPermissions) {
+                    if (!shouldShowRequestPermissionRationale(wantedPermission)) {
+                        shouldNotAsk.add(wantedPermission);
+                    }
+                }
+                wantedPermissions.removeAll(shouldNotAsk);
+            } else {
+                // Permissions have not been asked yet, but now will be
+                prefs.getPreferences().edit().putBoolean("permissions_asked", true).apply();
+            }
+
+            if (!wantedPermissions.isEmpty()) {
+                GB.toast(this, getString(R.string.permission_granting_mandatory), Toast.LENGTH_LONG, GB.ERROR);
+                ActivityCompat.requestPermissions(this, wantedPermissions.toArray(new String[0]), 0);
+                GB.toast(this, getString(R.string.permission_granting_mandatory), Toast.LENGTH_LONG, GB.ERROR);
+            }
+        }
+
+        /* In order to be able to set ringer mode to silent in GB's PhoneCallReceiver
+           the permission to access notifications is needed above Android M
+           ACCESS_NOTIFICATION_POLICY is also needed in the manifest */
+        if (pesterWithPermissions) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (!((NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE)).isNotificationPolicyAccessGranted()) {
+                    GB.toast(this, getString(R.string.permission_granting_mandatory), Toast.LENGTH_LONG, GB.ERROR);
+                    startActivity(new Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS));
+                }
+            }
+        }
+
+        // HACK: On Lineage we have to do this so that the permission dialog pops up
+        if (fakeStateListener == null) {
+            fakeStateListener = new PhoneStateListener();
+            TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+            telephonyManager.listen(fakeStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+            telephonyManager.listen(fakeStateListener, PhoneStateListener.LISTEN_NONE);
+        }
+    }
+
+    private ChangeLog createChangeLog() {
+        String css = ChangeLog.DEFAULT_CSS;
+        css += "body { "
+                + "color: " + AndroidUtils.getTextColorHex(getBaseContext()) + "; "
+                + "background-color: " + AndroidUtils.getBackgroundColorHex(getBaseContext()) + ";" +
+                "}";
+        return new ChangeLog(this, css);
+    }
+
+    /**
+     * 어플 ui 관련
+     */
+
+    /**
+     * 상태에 따라 ui 변경
+     * <p>
+     * 화면 변화에 따라 ui 변경
+     */
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (HuamiSupport.STEP_TIMER > 1) {
+            imageX = timerImage.getWidth();
+            imageY = timerImage.getHeight();
+            RotateAnimation anim =
+                    new RotateAnimation(405 - 360 * (HuamiSupport.RESET_TIME - HuamiSupport.STEP_TIMER) / HuamiSupport.RESET_TIME, 405, timerImage.getWidth() / 2, timerImage.getHeight() / 2);
+            anim.setDuration(HuamiSupport.RESET_TIME * 1000 - HuamiSupport.STEP_TIMER * 1000);//에니메이션 지속시간
+            anim.setInterpolator(new LinearInterpolator());
+            timerImage.startAnimation(anim);
+        }
+    }
+
+    /**
+     * 앱 시작시 ui를 컨트롤해 주는 쓰레드 실행
+     */
+    @Override
+    protected void onStart() {
+        super.onStart();
+        windowon = "on";
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        windowon = "close";
+    }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">가젯브릿지</string>
-    <string name="title_activity_controlcenter">가젯브릿지</string>
+    <string name="app_name">HCI</string>
+    <string name="title_activity_controlcenter">HCI</string>
     <string name="action_settings">설정</string>
     <string name="action_debug">디버그</string>
     <string name="action_quit">종료</string>

@@ -15,6 +15,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.service.devices.huami;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Context;
@@ -23,8 +27,13 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.RotateAnimation;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import net.e175.klaus.solarpositioning.DeltaT;
@@ -58,6 +67,7 @@ import cyanogenmod.weather.util.WeatherUtils;
 import nodomain.freeyourgadget.gadgetbridge.GBApplication;
 import nodomain.freeyourgadget.gadgetbridge.Logging;
 import nodomain.freeyourgadget.gadgetbridge.R;
+import nodomain.freeyourgadget.gadgetbridge.activities.DebugActivity;
 import nodomain.freeyourgadget.gadgetbridge.activities.SettingsActivity;
 import nodomain.freeyourgadget.gadgetbridge.database.DBHandler;
 import nodomain.freeyourgadget.gadgetbridge.database.DBHelper;
@@ -140,6 +150,7 @@ import nodomain.freeyourgadget.gadgetbridge.util.StringUtils;
 import nodomain.freeyourgadget.gadgetbridge.util.Version;
 
 
+import static android.content.Context.NOTIFICATION_SERVICE;
 import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_ALLOW_HIGH_MTU;
 import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_BT_CONNECTED_ADVERTISEMENT;
 import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_DATEFORMAT;
@@ -175,8 +186,9 @@ import static nodomain.freeyourgadget.gadgetbridge.model.ActivityUser.PREF_USER_
 import static nodomain.freeyourgadget.gadgetbridge.service.btle.GattCharacteristic.UUID_CHARACTERISTIC_ALERT_LEVEL;
 
 
-public class HuamiSupport extends AbstractBTLEDeviceSupport {
+public class HuamiSupport extends AbstractBTLEDeviceSupport{
 
+    private boolean TIMER_UI = false;
     // We introduce key press counter for notification purposes
     private static int currentButtonActionId = 0;
     private static int currentButtonPressCount = 0;
@@ -217,13 +229,12 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     private int mMTU = 23;
     protected int mActivitySampleSize = 4;
 
-    private Timer punchTimer = new Timer();
 
     //added for sensor data
     private volatile boolean isReadingSensorData;
 
     public static int HEART_RATE = -1;
-//    public static int STEP_TIMER = -10;
+    //    public static int STEP_TIMER = -10;
     public static int STEP = -1;
 
 
@@ -1096,46 +1107,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
 
                 builder.write(characteristicHRControlPoint, stopHeartMeasurementManual);
                 builder.write(characteristicHRControlPoint, startHeartMeasurementContinuous);
-                // added
-//                punchTimer.scheduleAtFixedRate(new TimerTask() {
-//                    int temp = 0;
-//                    Context CONTEXT = GBApplication.getContext();
-//
-//                    @Override
-//                    public void run() {
-//                        LOG.debug("punching the deviceService...");
-//                        // write the continue bit...
-//                        try {
-//                            TransactionBuilder builder = performInitialized("Continue heart rate measurement");
-//                            builder.write(characteristicHRControlPoint, continueHeartMeasurementContinuous);
-//
-//                            HRval[0] = realtimeSamplesSupport.getHeartrateBpm();
-//
-//                            if (HRval[0] < 1) {
-//                                realtimeSamplesSupport.setHeartrateBpm(previousHRval[0]);
-//                            } else {
-//                                previousHRval[0] = HRval[0];
-//                            }
-////                            GB.toast(getContext(), "measured:" + realtimeSamplesSupport.getHeartrateBpm(), Toast.LENGTH_LONG, GB.INFO);
-//
-//                            if (realtimeSamplesSupport.getHeartrateBpm() > 90) {
-//                                vibrateOnce();
-////                                customNotification();
-////                                onNotification(new NotificationSpec());
-//                            }
-//
-//                            builder.queue(getQueue());
-//                        } catch (IOException e) {
-//                        }
-//                    }
-//                }, 1000 * 10, 1000);
-//                // Start after 10 seconds, repeat each second
             }
-//            else {
-//                builder.write(characteristicHRControlPoint, stopHeartMeasurementContinuous);
-//                punchTimer.cancel();
-//                punchTimer = new Timer();
-//            }
             builder.queue(getQueue());
             enableRealtimeSamplesTimer(enable);
         } catch (IOException ex) {
@@ -1875,39 +1847,39 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
         return sample;
     }
 
+    /**
+     * 밴드와 앱이 연결되었는지 확인하는 변수
+     * 밴드를 착용하고 있는지 확인하는 변수
+     */
+    public static boolean IS_CONNECT = false;
+    public static boolean IS_WEAR = false;
+    public static int WEAR_CHECK_TIMER = -1;    // 워치 미착용 시 동작하는 타이머
 
-    int steps = 0;
 
-    private void notifyDialog() {
-//        @WorkerThread
-//        void workerTrhead(){
-//        }
-    }
+    public static final String TEST = "nodomain.freeyourgadget.gadgetbridge.service.devices.huami.TEST_ACTION";
 
     private RealtimeSamplesSupport getRealtimeSamplesSupport() {
 
         if (realtimeSamplesSupport == null) {
             realtimeSamplesSupport = new RealtimeSamplesSupport(1000, 1000) {
+
+
                 @Override
                 public void doCurrentSample() {
                     if (!HuamiSupport.super.isConnected()) {
                         // if disconnected -> notify for connection and exit the program for resource
                         HEART_RATE = 0;
+//                        connect=false;
                         WEAR_NOTIFY_TIMER = 60;
-                        try {
-                            Thread.sleep(100);
-                            WEAR_NOTIFY_TIMER = 1;
-                            Thread.sleep(1000);
-
-                        } catch (InterruptedException e) {
-                        }
                         System.exit(0);
                     }
                     try {
                         if (HuamiSupport.super.isConnected()) {
+                            IS_CONNECT = true;
                             TransactionBuilder builder = performInitialized("Continue heart rate measurement");
                             builder.write(characteristicHRControlPoint, continueHeartMeasurementContinuous);
                             builder.queue(getQueue());
+                            useAutoConnect();
                         } else {
                             TransactionBuilder builder = performInitialized("stop heart rate measurement");
                             builder.write(characteristicHRControlPoint, stopHeartMeasurementContinuous);
@@ -1940,6 +1912,23 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                         /*-------------------------------------*/
 //                        sample.setHeartRate(getHeartrateBpm());
                         HEART_RATE = sample.getHeartRate();
+                        if (HEART_RATE > 0) {
+                            IS_WEAR = true;
+                        }else {
+                            IS_WEAR = false;
+
+                            LOG.debug("check WEAR_CHECK_TIMER : " + WEAR_CHECK_TIMER);
+
+                            WEAR_CHECK_TIMER--;
+
+                            if(WEAR_CHECK_TIMER < 0) {
+                                /**  브로드캐스트 send 구현 */
+                                LOG.debug("check: IS_WEAR is false... sending system broadcast");
+                                Intent broadcast_intent = new Intent(TEST);
+                                GBApplication.getContext().sendBroadcast(broadcast_intent);
+                                WEAR_CHECK_TIMER = 60; // 타이머 초기화
+                            }
+                        }
                         if (sample.getSteps() > -1) {
                             steps += sample.getSteps();
                         }
@@ -1952,7 +1941,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                         // set the steps only afterwards, since realtime steps are also recorded
                         // in the regular samples and we must not count them twice
                         // Note: we know that the DAO sample is never committed again, so we simply
-                        // change the value here in memory.
+                        // change the value here in memory\.
 
                         sample.setSteps(getSteps());
 
@@ -1982,9 +1971,6 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
         }
         return realtimeSamplesSupport;
     }
-
-    private int beforeStep = 0;
-    private int step = 0;
     public static boolean WATCH_VIB_SET = false;
     public static int TOTAL_STEP = 0;
 
@@ -2000,6 +1986,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     public final static int MUTABILITY = 0;
     public final static int ONE_SECOND = 1;
     public final static int FIVE_SECOND = 2;
+    public final static int NONE_MUTABILITY = 3;
 
     public static int CASES = NONE;
 
@@ -2007,16 +1994,21 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
     public static int IN_TIME_STEP = 0;     // 주기 내의 step 수
     public static boolean IS_NOTIFY = false;        // if true call message else if false nothing 알람창
     public static int STEP_TIMER = -1;      // step 시간 측정 타이머
-    public static int VIBRATION_TAG=0;      // 진동이 오는동안을 표시해줌
+    public static int VIBRATION_TAG = 0;      // 진동이 오는동안을 표시해줌
 
-    public static int SET_START_TIME=0;
-    public static int SET_END_TIME=0;
-    int CURRENT_TIME =0;
+    /**
+     * 앱을 사용할 수 있는 시작시간, 종료시간 설정 변수
+     * DebugActivity에서 값을 받아온다.
+     */
+    public static int SET_START_TIME = 0;
+    public static int SET_END_TIME = 0;
+    int CURRENT_TIME = 0;
 
-    public static int RESET_TIME = 60;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
-//    int resetTime = 40;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
+    public static int RESET_TIME = 120;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
+    //    int resetTime = 40;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
     InsertDB insert;
     final Timer timer = new Timer();
+    static String currentime="0";
     TimerTask Task = new TimerTask() {
         @Override
         public void run() {
@@ -2024,22 +2016,32 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             Date date = new Date(now);
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
             String getTime = dateFormat.format(date);
-            CURRENT_TIME =Integer.parseInt(getTime.substring(11,13)+getTime.substring(14,16)+getTime.substring(17));
+            currentime = getTime;
+            sendSystemBroadcast("support");
+            CURRENT_TIME = Integer.parseInt(getTime.substring(11, 13) + getTime.substring(14, 16) + getTime.substring(17));
+            if(CURRENT_TIME>=240000){
+                CURRENT_TIME-=240000;
+                StringBuffer time = new StringBuffer(getTime);
+                time.setCharAt(11,'0');
+                time.setCharAt(12,'0');
+                getTime=time.toString();
+            }
+            LOG.debug(SET_START_TIME + "셋 시작 시간" + CURRENT_TIME +" 현재 시간" + SET_END_TIME + "셋 끝 시간"+ getTime);
+            if (SET_START_TIME <= CURRENT_TIME && SET_END_TIME >= CURRENT_TIME || (SET_END_TIME == 0 && SET_START_TIME == 0)) {
 
-            if(SET_START_TIME<= CURRENT_TIME && SET_END_TIME>= CURRENT_TIME ||(SET_END_TIME==0&&SET_START_TIME==0)) {
-
-                insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP+"", VIBRATION_TAG+"");
+                LOG.debug("셋 시간 작동 중");
+                insert.insertData(getTime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP + "", VIBRATION_TAG + "", DebugActivity.windowon);
                 if(VIBRATION_TAG>0){
                     VIBRATION_TAG++;
                 }
+                if(STEP_TIMER==0){
+                    VIBRATION_TAG=0;
+                }
+
                 // 진동이 오는 동안 계속해서 1씩 더해줌. 10초동안 울리면 DB에 1~10으로 초당 저장
-
-
-                //            LOG.debug("insert Debug : "+ stepTimer+""+HuamiSupport.HEART_RATE+""+HuamiSupport.TOTAL_STEP+""+(HuamiSupport.TOTAL_STEP - beforeStep)+"");
-                LOG.debug("check Activity >> step timer: " + STEP_TIMER + ", heart rate: " + HuamiSupport.HEART_RATE + ", total step:" + HuamiSupport.TOTAL_STEP + ", step: " + IN_TIME_STEP + ", wear notify timer: " + WEAR_NOTIFY_TIMER + ", in time step : "+ IN_TIME_STEP);
-                LOG.debug("check Activity >> current case: " + CASES);
-
                 b_step = HuamiSupport.TOTAL_STEP;
+
+
                 switch (CASES) {           //실험 대상군 설정
                     case MUTABILITY:
                         checkActivity(1, 1, MUTABILITY);
@@ -2050,20 +2052,32 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                     case FIVE_SECOND:
                         checkActivity(1, 1, FIVE_SECOND);                  //진동 다섯번 울리는 케이스
                         break;
+                    case NONE_MUTABILITY:
+                        checkActivity(1, 1, NONE_MUTABILITY);
                 }
-            }else {
+            } else {
                 STEP_TIMER = -1;
                 IN_TIME_STEP = 0;
                 WEAR_NOTIFY_TIMER = 1;
                 initial = true;
+                DebugActivity.TIMER_UI = false;
             }
         }
     };
 
-    public void makeDB(){
-        insert =  new InsertDB(getContext());
+    /**
+     * 서버에 저장하기 위한 객체 생성
+     */
+    public void makeDB() {
+        insert = new InsertDB(getContext());
     }
 
+    /**
+     * 진동을 몇초동안 울리게 할지 정해주는 함수
+     * @param period 진동 주기 시간
+     * @param time
+     * @param casenum
+     */
     private void vibration_timer(int period, final int time, int casenum) {
         final Timer timer = new Timer();
         TimerTask Task = new TimerTask() {
@@ -2072,114 +2086,158 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             @Override
             public void run() {
                 switch (casenum) {
+
                     case MUTABILITY:
                         vibrateOnce();
-                        if(VIBRATION_TAG==0){
-                            VIBRATION_TAG=1;        //진동이 울리면 시작됐다고 표시
+                        if (VIBRATION_TAG == 0) {
+                            VIBRATION_TAG = 1;        //진동이 울리면 시작됐다고 표시
                         }
                         if (!WATCH_VIB_SET) {
-                            VIBRATION_TAG=0;        //진동이 꺼지면 초기화
+                            VIBRATION_TAG = 0;        //진동이 꺼지면 초기화
                             timer.cancel();
                         }
                         break;
                     case ONE_SECOND:
                         vibrateOnce();
-                        if(VIBRATION_TAG==0){
-                            VIBRATION_TAG=1;        //진동이 울리면 시작됐다고 표시
+                        if (VIBRATION_TAG == 0) {
+                            VIBRATION_TAG = 1;        //진동이 울리면 시작됐다고 표시
                         }
+                        insert.insertData(currentime + "", HuamiSupport.HEART_RATE + "", HuamiSupport.TOTAL_STEP + "", (HuamiSupport.TOTAL_STEP - b_step) + "", IN_TIME_STEP + "", VIBRATION_TAG + "", DebugActivity.windowon);
                         cnt++;
                         if (cnt >= 1) {
                             cnt = 0;
-                            VIBRATION_TAG=0;        //진동이 꺼지면 초기화
+                            VIBRATION_TAG = 0;        //진동이 꺼지면 초기화
                             timer.cancel();
                         }
                         break;
                     case FIVE_SECOND:
                         vibrateOnce();
-                        if(VIBRATION_TAG==0){
-                            VIBRATION_TAG=1;        //진동이 울리면 시작됐다고 표시
+                        if (VIBRATION_TAG == 0) {
+                            VIBRATION_TAG = 1;        //진동이 울리면 시작됐다고 표시
                         }
                         cnt++;
-                        if (cnt >= 5) {
+                        if (cnt >= 3) {
                             cnt = 0;
-                            VIBRATION_TAG=0;        //진동이 꺼지면 초기화
+                            VIBRATION_TAG = 0;        //진동이 꺼지면 초기화
+                            timer.cancel();
+                        }
+                        break;
+                    case NONE_MUTABILITY:
+                        vibrateOnce();
+                        if (VIBRATION_TAG == 0) {
+                            VIBRATION_TAG = 1;        //진동이 울리면 시작됐다고 표시
+                        }
+                        cnt++;
+                        if (cnt >= 31) {
+                            cnt = 0;
+                            VIBRATION_TAG = 0;        //진동이 꺼지면 초기화
+                            DESTROY_NOTIFICATION = true;
+                            WATCH_VIB_SET = false;
                             timer.cancel();
                         }
                         break;
                 }
             }
         };
-        timer.schedule(Task, 0, period * 3500);
+        timer.schedule(Task, 0, period * 3000);
     }
 
 
-    /**
-     * TODO : 각 케이스 마다 주기와 알고리즘을 설정필요
-     * : MUTABILITY -> 20초 동안 진동을 준다 + 휴대폰에서 운동 요구 알림이 온다.
-     * :            -> notification compat을 누르는 순간 알림 destory와 밴드의 vibration을 멈춘다.
-     *
-     * @param period  주기
-     * @param time    시간
-     * @param casenum 실험 케이스
-     */
     private boolean initial = true; // 밴드 최초 착용 및 재착용 여부
-    public static boolean DESTROY_NOTIFICATION = false;
-    public static int WEAR_NOTIFY_TIMER = 0;
+    public static boolean DESTROY_NOTIFICATION = false; //true 일시 푸쉬알람 종료
+    public static int WEAR_NOTIFY_TIMER = 0; //밴드를 착용하고 있던 시간
 
+    /**
+     * 활동 체크 --> 진동 종류에 따라 다름
+     *
+     * 실시간 걸음수에 대한 핸들러 부분
+     *
+     * DebugAcitity의 변수를 static으로 사용
+     *
+     */
     void checkActivity(int period, int time, int casenum) {     //주기별 task설정
-
+        LOG.debug("check activity >> IS_NOTIFY: " + IS_NOTIFY + " DESTROY NOTIFI:" + DESTROY_NOTIFICATION );
         if (HuamiSupport.HEART_RATE > 0) {
+
+            if(0<IN_TIME_STEP && IN_TIME_STEP<=10 && STEP_TIMER%120==0){
+                    IN_TIME_STEP=0;
+            }
+
+
             if (STEP_TIMER == 0 && !initial) {
+                LOG.debug("check activity >> IS_NOTIFIED");
                 // base 설정
                 // inTimeStep이 10회 미만인 경우
                 // 가장 초기엔 현재 측정된 step을 설정한다.
                 if (IN_TIME_STEP > -1 && IN_TIME_STEP < 10) {
                     // 한 주기 동안 10회 미만의 step인 경우 -> notify 실시
-                    // TODO : notify for exercise implement needed
                     if (casenum == MUTABILITY) {
                         WATCH_VIB_SET = true;
                     }
+                    if (casenum == NONE_MUTABILITY) {
+                        WATCH_VIB_SET = true;
+                    }
                     IS_NOTIFY = true;
+
+                    LOG.debug("check activity >> IS_NOTIFY: " + IS_NOTIFY);
                     vibration_timer(1, 1, casenum);
                 }
+//                else if (IN_TIME_STEP >= 10 ){
+//                    STEP_TIMER = 0;
+//                    initial = false;
+//                }
                 IN_TIME_STEP = HuamiSupport.STEP;
             }
 
-            if (STEP_TIMER == 0) {
-                // step timer 이 수행하기 시작하므로 false로 지정
-                WEAR_NOTIFY_TIMER = 1;
-                initial = false;
-            }
-            if (STEP_TIMER > 0) {
-                // 주기 내 step 수들을 저장
-                IN_TIME_STEP += HuamiSupport.STEP;
-            }
-            STEP_TIMER++;
+            if (IN_TIME_STEP >= 10) {
+                STEP_TIMER = 1;
+                IN_TIME_STEP = 0;
+                DESTROY_NOTIFICATION = true;
+                DebugActivity.TIMER_UI=false;
 
-            // case : MUTABILITY
-            if (casenum == MUTABILITY) {
-                if (STEP_TIMER <= 60 && IN_TIME_STEP >= 10) {
-                    // 20초 이내 step이 10번 이상 이루어진 경우
-                    // TODO : Notification destroy and vibration cancel
-                    DESTROY_NOTIFICATION = true;
-                    WATCH_VIB_SET = false;
+            } else {
+
+                if (STEP_TIMER == 0) {
+                    // step timer 이 수행하기 시작하므로 false로 지정
+                    WEAR_NOTIFY_TIMER = 1;
+                    initial = false;
                 }
-                if (STEP_TIMER > 60) {
-                    // 20초 초과 후 진동을 멈춤
-                    WATCH_VIB_SET = false;
+
+
+                if (STEP_TIMER > 0) {
+                    // 주기 내 step 수들을 저장
+                    IN_TIME_STEP += HuamiSupport.STEP;
                 }
+                STEP_TIMER++;
+
+                // case : MUTABILITY
+                if (casenum == MUTABILITY) {
+                    if (STEP_TIMER <= 90 && IN_TIME_STEP >= 10) {
+                        // 20초 이내 step이 10번 이상 이루어진 경우
+                        DESTROY_NOTIFICATION = true;
+                        WATCH_VIB_SET = false;
+                    }
+                    if (STEP_TIMER > 90) {
+                        // 90초 초과 후 진동을 멈춤
+                        DESTROY_NOTIFICATION = true;
+                        WATCH_VIB_SET = false;
+                    }
+                }
+
             }
+
             if (STEP_TIMER >= RESET_TIME) {
                 // 주기 리셋
                 STEP_TIMER = 0;
+                DebugActivity.TIMER_UI=false;
             }
         } else {
             // set timer to 0 constantly
-            // TODO : notify to user "wear device"
             WEAR_NOTIFY_TIMER += 1;
             IN_TIME_STEP = 0;
             STEP_TIMER = -1;
             initial = true;
+            DebugActivity.TIMER_UI = false;
         }
     }
 
@@ -2505,17 +2563,6 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
         } catch (IOException ex) {
             LOG.error("Unable to toggle sensor reading MI", ex);
         }
-
-//        try{
-//            TransactionBuilder builder = performInitialized("Toggle sensor reading");
-//            builder.write(getCharacteristic(UUID.fromString("00000001-0000-3512-2118-0009af100700")), new byte[]{0x01,0x01,0x19});
-//            builder.write(getCharacteristic(UUID.fromString("00000001-0000-3512-2118-0009af100700")), new byte[]{0x02});
-////            builder.notify(getCharacteristic(UUID.fromString("00000002-0000-3512-2118-0009af100700"new byte[]{0x01,0x00});
-//            builder.queue(getQueue());
-//
-//        } catch (IOException ex){
-//            LOG.error("unable to toggle sensor reading MI", ex);
-//        }
     }
 
     @Override
@@ -3338,6 +3385,10 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
         requestBatteryInfo(builder);
     }
 
+    /**
+     * 밴드 연결시 실행되는 코드
+     * @param builder
+     */
     public void phase3Initialize(TransactionBuilder builder) {
         LOG.info("phase3Initialize...");
         setDateDisplay(builder);

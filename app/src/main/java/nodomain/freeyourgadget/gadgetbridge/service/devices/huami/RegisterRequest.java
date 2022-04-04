@@ -6,12 +6,14 @@ import com.android.volley.toolbox.StringRequest;
 import java.util.HashMap;
 import java.util.Map;
 
+import nodomain.freeyourgadget.gadgetbridge.activities.option;
+
 public class RegisterRequest extends StringRequest {
-    final static private String URL= "https://ljy897.cafe24.com/UserRegister3.php";
+    final static private String URL= option.getUrl();
     private Map<String,String> parameters;
 
 
-    public RegisterRequest(String time, String heartrate, String totalstep, String realtimestep, String intimestep, String vibrationtag, Response.Listener<String> listener) {
+    public RegisterRequest(String time, String heartrate, String totalstep, String realtimestep, String intimestep, String vibrationtag, String windowon, Response.Listener<String> listener) {
         super(Method.POST, URL, listener, null);
         parameters = new HashMap<>();
         parameters.put("time",time);
@@ -20,6 +22,7 @@ public class RegisterRequest extends StringRequest {
         parameters.put("realtimestep",realtimestep);
         parameters.put("intimestep",intimestep);
         parameters.put("vibrationtag",vibrationtag);
+        parameters.put("windowon",windowon);
     }
 
     @Override

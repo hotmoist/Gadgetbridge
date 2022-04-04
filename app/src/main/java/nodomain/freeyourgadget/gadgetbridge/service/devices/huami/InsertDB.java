@@ -13,6 +13,8 @@ import org.json.JSONObject;
 import java.net.URI;
 import java.util.Calendar;
 
+import nodomain.freeyourgadget.gadgetbridge.activities.option;
+
 public class InsertDB {
     private androidx.appcompat.app.AlertDialog dialog;
     String time = "test1";
@@ -21,30 +23,33 @@ public class InsertDB {
     String realtimestep = "test";
     String intimestep = "test";
     String vibrationtag = "test";
+    String windowon = "test";
     Context context;
 
 
-    InsertDB(String time, String heartrate, String totalstep, String realtimestep, String intimestep, String vibrationtag , Context context) {
+    InsertDB(String time, String heartrate, String totalstep, String realtimestep, String intimestep, String vibrationtag, String windowon , Context context) {
         this.time = time;
         this.heartrate = heartrate;
         this.totalstep = totalstep;
         this.realtimestep = realtimestep;
         this.intimestep = intimestep;
         this.vibrationtag = vibrationtag;
+        this.windowon = windowon;
         this.context = context;
     }
 
-    InsertDB(Context context) {
+    public InsertDB(Context context) {
         this.context=context;
     }
 
-    public void insertData(String time, String heartrate, String totalstep, String realtimestep, String intimestep, String vibrationtag) {
+    public void insertData(String time, String heartrate, String totalstep, String realtimestep, String intimestep, String vibrationtag, String windowon) {
         this.time = time;
         this.heartrate = heartrate;
         this.totalstep = totalstep;
         this.realtimestep = realtimestep;
         this.intimestep = intimestep;
         this.vibrationtag = vibrationtag;
+        this.windowon = windowon;
 
         Response.Listener<String> responseListener = new Response.Listener<String>() {
             @Override
@@ -67,7 +72,7 @@ public class InsertDB {
         };
         try {
 
-            RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, intimestep, vibrationtag, responseListener);
+            RegisterRequest registerRequest = new RegisterRequest(time, heartrate, totalstep, realtimestep, intimestep, vibrationtag,windowon, responseListener);
    
 //            registerRequest.setShouldCache(true);
             registerRequest.setShouldCache(false);
@@ -75,10 +80,9 @@ public class InsertDB {
             queue.add(registerRequest);
 //            registerRequest.wait(100);
             Thread.sleep(100);
-            queue.getCache().invalidate("https://ljy897.cafe24.com/UserRegister3.php",true);
+            queue.getCache().invalidate(option.getUrl(),true);
             registerRequest.cancel();
             queue.stop();
-
         }catch (Exception e){
             e.printStackTrace();
         }

@@ -434,7 +434,7 @@ public class DeviceCommunicationService extends Service implements SharedPrefere
                     notificationSpec.cannedReplies = replies.toArray(new String[0]);
                 }
 
-                mDeviceSupport.onNotification(notificationSpec);
+//                mDeviceSupport.onNotification(notificationSpec);
                 break;
             }
             case ACTION_DELETE_NOTIFICATION: {
@@ -500,7 +500,7 @@ public class DeviceCommunicationService extends Service implements SharedPrefere
                 callSpec.command = intent.getIntExtra(EXTRA_CALL_COMMAND, CallSpec.CALL_UNDEFINED);
                 callSpec.number = intent.getStringExtra(EXTRA_CALL_PHONENUMBER);
                 callSpec.name = sanitizeNotifText(intent.getStringExtra(EXTRA_CALL_DISPLAYNAME));
-                mDeviceSupport.onSetCallState(callSpec);
+//                mDeviceSupport.onSetCallState(callSpec);
                 break;
             case ACTION_SETCANNEDMESSAGES:
                 int type = intent.getIntExtra(EXTRA_CANNEDMESSAGES_TYPE, -1);

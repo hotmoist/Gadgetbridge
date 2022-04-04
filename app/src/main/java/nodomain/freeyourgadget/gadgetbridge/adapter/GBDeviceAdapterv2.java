@@ -44,6 +44,7 @@ import androidx.cardview.widget.CardView;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.flexbox.FlexboxLayout;
 import com.google.android.material.snackbar.Snackbar;
 import com.jaredrummler.android.colorpicker.ColorPickerDialog;
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
@@ -111,8 +112,8 @@ public class GBDeviceAdapterv2 extends RecyclerView.Adapter<GBDeviceAdapterv2.Vi
                 if (device.isInitialized() || device.isConnected()) {
                     showTransientSnackbar(R.string.controlcenter_snackbar_need_longpress);
                 } else {
-                    showTransientSnackbar(R.string.controlcenter_snackbar_connecting);
                     GBApplication.deviceService().connect(device);
+                    showTransientSnackbar(R.string.controlcenter_connect);
                 }
             }
         });
@@ -172,8 +173,6 @@ public class GBDeviceAdapterv2 extends RecyclerView.Adapter<GBDeviceAdapterv2.Vi
                                                        }
                                                    }
         );
-
-
         //device specific settings
         holder.deviceSpecificSettingsView.setVisibility(coordinator.getSupportedDeviceSpecificSettings(device) != null ? View.VISIBLE : View.GONE);
         holder.deviceSpecificSettingsView.setOnClickListener(new View.OnClickListener()
@@ -292,7 +291,7 @@ public class GBDeviceAdapterv2 extends RecyclerView.Adapter<GBDeviceAdapterv2.Vi
         holder.deviceInfoView.setOnClickListener(new View.OnClickListener() {
                                                      @Override
                                                      public void onClick(View v) {
-                                                         expandedDevicePosition = detailsShown ? -1 : position;
+                                                         expandedDevicePosition = -1;
                                                          TransitionManager.beginDelayedTransition(parent);
                                                          notifyDataSetChanged();
                                                      }
