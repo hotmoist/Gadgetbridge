@@ -7,7 +7,7 @@ public class option {
     private final static int NONE_MUTABILITY = 3;
 
     private static int cases=ONE_SECOND;
-    private static int time= 60;
+    private static int time= 4800;
     private static String url="https://ljy897.cafe24.com/UserRegister9.php";
 
 

@@ -2002,7 +2002,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport{
      */
     public static int SET_START_TIME = 0;
     public static int SET_END_TIME = 0;
-    int CURRENT_TIME = 0;
+    public static int CURRENT_TIME = 0;
 
     public static int RESET_TIME = 120;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
     //    int resetTime = 40;                  //타이머 주기 초단위 -->ex) 60이면 60초, 40분 -> 2400초
