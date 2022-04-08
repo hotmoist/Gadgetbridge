@@ -418,13 +418,16 @@ public class DiscoveryActivity extends AbstractGBActivity implements AdapterView
         if (ensureBluetoothReady() && isScanning == Scanning.SCANNING_OFF) {
             if (what == Scanning.SCANNING_BT || what == Scanning.SCANNING_BT_NEXT_BLE) {
                 startBTDiscovery(what);
-            } else if (what == Scanning.SCANNING_BLE && GB.supportsBluetoothLE()) {
-                if (oldBleScanning || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                    startOldBTLEDiscovery();
-                } else {
-                    startBTLEDiscovery();
-                }
-            } else {
+            }
+            /** Deactivate BLE scanning */
+//            else if (what == Scanning.SCANNING_BLE && GB.supportsBluetoothLE()) {
+//                if (oldBleScanning || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+//                    startOldBTLEDiscovery();
+//                } else {
+//                    startBTLEDiscovery();
+//                }
+//            }
+            else {
                 discoveryFinished();
                 toast(DiscoveryActivity.this, getString(R.string.discovery_enable_bluetooth), Toast.LENGTH_SHORT, GB.ERROR);
             }
