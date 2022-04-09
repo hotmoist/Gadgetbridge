@@ -212,7 +212,10 @@ public class DebugActivity extends AbstractGBActivity {
                             createNotification(DEFAULT, 13010, "워치를 연결해주세요", "워치와 연결이 끊겼습니다! 연결해주세요", intent);
                 } else if (HuamiSupport.ACTION_NOT_WEARING.equals(action)){
                     LOG.debug("check: from DebugActivity, received wear detection broadcast");
-                    createNotification(DEFAULT, 13009, "워치를 착용해주세요", "워치 착용이 탐지되지 않았습니다. 워치를 착용해주세요", intent);
+                    if (HuamiSupport.SET_START_TIME <= HuamiSupport.CURRENT_TIME && HuamiSupport.SET_END_TIME >= HuamiSupport.CURRENT_TIME || (HuamiSupport.SET_END_TIME == 0 && HuamiSupport.SET_START_TIME == 0)) {
+
+                        createNotification(DEFAULT, 13009, "워치를 착용해주세요", "워치 착용이 탐지되지 않았습니다. 워치를 착용해주세요", intent);
+                    }
                 }
                 return null;
             }
