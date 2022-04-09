@@ -16,22 +16,15 @@
 package nodomain.freeyourgadget.gadgetbridge.activities;
 
 import android.Manifest;
-import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.appwidget.AppWidgetHost;
-import android.appwidget.AppWidgetManager;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -39,27 +32,19 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Debug;
 import android.os.Handler;
 import android.os.Message;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
@@ -82,7 +67,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -91,30 +75,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import de.cketti.library.changelog.ChangeLog;
 import nodomain.freeyourgadget.gadgetbridge.GBApplication;
 import nodomain.freeyourgadget.gadgetbridge.R;
-import nodomain.freeyourgadget.gadgetbridge.Widget;
 import nodomain.freeyourgadget.gadgetbridge.adapter.GBDeviceAdapterv2;
 import nodomain.freeyourgadget.gadgetbridge.devices.DeviceManager;
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice;
 import nodomain.freeyourgadget.gadgetbridge.model.ActivitySample;
 import nodomain.freeyourgadget.gadgetbridge.model.DeviceService;
-import nodomain.freeyourgadget.gadgetbridge.service.DeviceCommunicationService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huami.InsertDB;
 import nodomain.freeyourgadget.gadgetbridge.util.AndroidUtils;
 import nodomain.freeyourgadget.gadgetbridge.util.GB;
 import nodomain.freeyourgadget.gadgetbridge.util.Prefs;
-import nodomain.freeyourgadget.gadgetbridge.util.WidgetPreferenceStorage;
 
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huami.HuamiSupport;
-
-
-import static android.content.Intent.EXTRA_SUBJECT;
-import static nodomain.freeyourgadget.gadgetbridge.util.GB.NOTIFICATION_CHANNEL_ID;
 
 public class DebugActivity extends AbstractGBActivity {
     private static final Logger LOG = LoggerFactory.getLogger(DebugActivity.class);
@@ -230,17 +205,12 @@ public class DebugActivity extends AbstractGBActivity {
 //                 notification 백그라운드로 이동
                 String action = intent.getAction();
                 LOG.debug("check broadcast Action : " + action);
-                if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
-                    if (!action.equals(BluetoothDevice.ACTION_ACL_CONNECTED) || !intent.hasExtra(BluetoothDevice.EXTRA_DEVICE)) {
-                        if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+                if (HuamiSupport.ACTION_WATCH_DISCONNECTED.equals(action)) {
 //                     연결 확인을 위한 test code
-//                            LOG.debug("/*****  before assert disconnection detected! notify! *********/");
 //                            assert (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED));
                             LOG.debug("check:  disconnection detected! notify! ");
-                            createNotification(DEFAULT, 13009, "워치를 연결해주세요", "워치와 연결이 끊겼습니다! 연결해주세요", intent);
-                        }
-                    }
-                } else if (HuamiSupport.TEST.equals(action)){
+                            createNotification(DEFAULT, 13010, "워치를 연결해주세요", "워치와 연결이 끊겼습니다! 연결해주세요", intent);
+                } else if (HuamiSupport.ACTION_NOT_WEARING.equals(action)){
                     LOG.debug("check: from DebugActivity, received wear detection broadcast");
                     if (HuamiSupport.SET_START_TIME <= HuamiSupport.CURRENT_TIME && HuamiSupport.SET_END_TIME >= HuamiSupport.CURRENT_TIME || (HuamiSupport.SET_END_TIME == 0 && HuamiSupport.SET_START_TIME == 0)) {
 
@@ -279,8 +249,9 @@ public class DebugActivity extends AbstractGBActivity {
         /***** ble disconnection  receiver register *****/
         // 브로드캐스트를 사용하기 위한 필터
         // Android manifest에 등록이 되어있어서 따로 등록 x (뭔가 어디서 등록된거지 ?)
-        IntentFilter disconnectionFilter = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-        disconnectionFilter.addAction(HuamiSupport.TEST);
+        IntentFilter disconnectionFilter = new IntentFilter();
+        disconnectionFilter.addAction(HuamiSupport.ACTION_WATCH_DISCONNECTED);
+        disconnectionFilter.addAction(HuamiSupport.ACTION_NOT_WEARING);
         this.registerReceiver(bleConnectionReceiver, disconnectionFilter);
 
         IntentFilter filter = new IntentFilter();
@@ -646,13 +617,17 @@ public class DebugActivity extends AbstractGBActivity {
                         runMessage.setVisibility(View.GONE);
                         fab.setVisibility(View.GONE);
                     }
+
                     inTimeStep.setText("\n" + HuamiSupport.IN_TIME_STEP);
                     activationTimePeriod.setText("활동 시간\n\n" + newStartHour + ":" + newStartMiunite + " - " + newEndHour + ":" + newEndMiunite);
+
                     if (newStartHour.equals("0") && newStartMiunite.equals("0") && newEndHour.equals("0") && newEndMiunite.equals("0")
                             || newStartHour.equals("00") && newStartMiunite.equals("00") && newEndHour.equals("00") && newEndMiunite.equals("00")) {
                         activationTimePeriod.setText("활동 시간\n\n항상 활성화");
                     }
+
                     vibrationTimePeriod.setText("설정 주기 간격: " + (HuamiSupport.RESET_TIME / 60));
+
                     if (HuamiSupport.CASES == HuamiSupport.NONE) {
                         currentCase.setText("Current case: NONE");
                     } else if (HuamiSupport.CASES == HuamiSupport.MUTABILITY) {
@@ -691,7 +666,7 @@ public class DebugActivity extends AbstractGBActivity {
     }
 
     void createNotification(String channelID, int id, String title, String text, Intent intent) {
-        PendingIntent pendingIntent = PendingIntent.getActivities(this, 0, new Intent[]{intent}, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivities(this, 0, new Intent[]{intent}, PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelID)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setSmallIcon(R.drawable.ic_notification)
