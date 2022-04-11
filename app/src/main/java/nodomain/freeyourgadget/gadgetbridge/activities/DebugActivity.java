@@ -547,8 +547,14 @@ public class DebugActivity extends AbstractGBActivity {
         loadTime();
         if (isSetVibrationTime) {
             // 이전에 시간이 저장된 경우가 있으면 세팅
-            HuamiSupport.SET_START_TIME = Integer.parseInt(newStartHour + newStartMiunite + "000");
-            HuamiSupport.SET_END_TIME = Integer.parseInt(newEndHour + newEndMiunite + "000");
+            if (newStartMiunite.length() == 1){
+                newStartMiunite = "0" + newStartMiunite;
+            }
+            if(newEndMiunite.length() == 1){
+                newEndMiunite = "0" + newEndMiunite;
+            }
+            HuamiSupport.SET_START_TIME = Integer.parseInt(newStartHour + newStartMiunite + "00");
+            HuamiSupport.SET_END_TIME = Integer.parseInt(newEndHour + newEndMiunite + "00");
         }
 
 
