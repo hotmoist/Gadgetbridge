@@ -1766,7 +1766,10 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             getRealtimeSamplesSupport().setSteps(steps);
         } else {
             if(value.length == 5) {
-                /**  */
+                /**
+                 * Step Value 가 탐지 안되는 기계를 위한 코드
+                 * 해당 기계들은 Bluetooth value 의 길이가 5
+                 **/
                 LOG.warn("Unrecognized realtime steps value: " + Logging.formatBytes(value));
                 byte[] stepsValue = new byte[]{value[1], value[2]};
                 LOG.warn("UnRecognized stepValue : " + stepsValue[0] + " " + stepsValue[1] + " | length " + stepsValue.length);
