@@ -2020,7 +2020,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
      */
     public static int SET_START_TIME = 0;
     public static int SET_END_TIME = 0;
-    int CURRENT_TIME = 0;
+    public static int CURRENT_TIME = 0;
     public boolean isOnTime = false;
 
 
