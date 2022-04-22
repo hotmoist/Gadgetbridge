@@ -1755,7 +1755,9 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
         }
 
         if (value.length == 13) {
+            LOG.warn("Recognized realtime steps value: " + Logging.formatBytes(value));
             byte[] stepsValue = new byte[]{value[1], value[2]};
+            LOG.warn("Recognized stepValue : " + stepsValue[0] + " " + stepsValue[1] + " | length " + stepsValue.length);
             int steps = BLETypeConversions.toUint16(stepsValue);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("realtime steps: " + steps);
@@ -1763,7 +1765,21 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
             TOTAL_STEP = steps;
             getRealtimeSamplesSupport().setSteps(steps);
         } else {
-            LOG.warn("Unrecognized realtime steps value: " + Logging.formatBytes(value));
+            if(value.length == 5) {
+                /**
+                 * Step Value 가 탐지 안되는 기계를 위한 코드
+                 * 해당 기계들은 Bluetooth value 의 길이가 5
+                 **/
+                LOG.warn("Unrecognized realtime steps value: " + Logging.formatBytes(value));
+                byte[] stepsValue = new byte[]{value[1], value[2]};
+                LOG.warn("UnRecognized stepValue : " + stepsValue[0] + " " + stepsValue[1] + " | length " + stepsValue.length);
+                int steps = BLETypeConversions.toUint16(stepsValue);
+                LOG.warn("UnRecognized stepValue converted to int : " + steps);
+                TOTAL_STEP = steps;
+                getRealtimeSamplesSupport().setSteps(steps);
+            }else{
+                LOG.warn("Unrecognized realtime steps value: " + Logging.formatBytes(value));
+            }
         }
     }
 
@@ -1970,6 +1986,7 @@ public class HuamiSupport extends AbstractBTLEDeviceSupport {
                         }
 
                         if (LOG.isDebugEnabled()) {
+                            LOG.debug("SET_START_TIME: " + SET_START_TIME + " | SET_END_TIME " + SET_END_TIME + " | CURRENT_TIME :" + CURRENT_TIME + " | " + currentime);
                             LOG.debug("realtime sample: " + sample);
                             LOG.debug("realtime bps: " + getHeartrateBpm());
                             LOG.debug("realtime heart: " + sample.getHeartRate() + ", intensity : " + sample.getIntensity() + ", raw intensity : " + sample.getIntensity() + ", step : " + sample.getSteps() + ", kind : " + sample.getKind() + ", raw kind : " + sample.getRawKind());
